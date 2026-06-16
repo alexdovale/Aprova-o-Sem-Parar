@@ -399,22 +399,24 @@
         import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- 1. CONFIGURAÇÃO FIREBASE ---
+        // Aqui o código se adapta: se rodar no Canvas, usa a config injetada. 
+        // Se rodar no seu GitHub/Hospedagem, ele usará as chaves que você colar abaixo.
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
             ? JSON.parse(__firebase_config) 
             : {
-                // COLOQUE SUAS CHAVES AQUI QUANDO FOR PARA O GITHUB
-                apiKey: "SUA_API_KEY",
-                authDomain: "seu-projeto.firebaseapp.com",
-                projectId: "seu-projeto",
-                storageBucket: "seu-projeto.appspot.com",
-                messagingSenderId: "123456",
-                appId: "1:123:web:abc"
+                apiKey: "AIzaSyArg91ndzybNzBNJ0iRTOxxmeSFxV11s6A",
+                authDomain: "questoes-estudos-aprovar.firebaseapp.com",
+                projectId: "questoes-estudos-aprovar",
+                storageBucket: "questoes-estudos-aprovar.firebasestorage.app",
+                messagingSenderId: "966256805754",
+                appId: "1:966256805754:web:b7ad19428894a2943cf8c3",
+                measurementId: "G-KZM4VWXBP6"
             };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'aprovacao-sem-parar';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'questoes-estudos-aprovar';
         
         let unsubscribeBanks = null;
         let unsubscribeQuestions = null;

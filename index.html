@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprovação Sem Parar</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 50; display: flex; flex-direction: column; gap: 10px; }
+        .toast { min-width: 250px; padding: 16px; border-radius: 8px; color: white; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); animation: slideIn 0.3s ease-out forwards; display: flex; align-items: center; gap: 12px; }
+        .toast.success { background-color: #10B981; }
+        .toast.error { background-color: #EF4444; }
+        .toast.warning { background-color: #F59E0B; }
+        .toast.fade-out { animation: slideOut 0.3s ease-in forwards; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Tema dinâmico: vamos usar cores mais neutras/indigo como base, já que não é só Bombeiros mais */
+        .bg-primary { background-color: #4f46e5; } /* Indigo 600 */
+        .bg-primary-hover { background-color: #4338ca; } /* Indigo 700 */
+        .text-primary { color: #4f46e5; }
+        .border-primary { border-color: #4f46e5; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <div id="toast-container"></div>
+
+    <!-- TELA DE LOADING INICIAL -->
+    <div id="loading-screen" class="fixed inset-0 bg-slate-100 z-50 flex flex-col items-center justify-center">
+        <img src="https://raw.githubusercontent.com/alexdovale/Aprova-o-Sem-Parar/main/Logo/logo.png" alt="Logo Aprovação Sem Parar" class="h-24 animate-pulse mb-4 object-contain">
+        <div class="loader mb-4"></div>
+        <p class="text-slate-600 font-semibold">Conectando ao Banco de Dados...</p>
+    </div>
+
+    <!-- TELA DE LOGIN / CADASTRO -->
+    <div id="auth-screen" class="hidden flex-grow flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full border border-slate-200">
+            <div class="text-center mb-8">
+                <img src="https://raw.githubusercontent.com/alexdovale/Aprova-o-Sem-Parar/main/Logo/logo.png" alt="Logo Aprovação Sem Parar" class="h-28 mx-auto mb-4 object-contain">
+                <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Aprovação Sem Parar</h1>
+                <p class="text-slate-500 mt-1">Sua plataforma pessoal de questões</p>
+            </div>
+
+            <form id="auth-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">E-mail</label>
+                    <input type="email" id="auth-email" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Senha</label>
+                    <input type="password" id="auth-password" required minlength="6" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                </div>
+                <button type="submit" id="btn-auth-submit" class="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md">
+                    Entrar
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-slate-600" id="auth-toggle-text">Não tem uma conta?</p>
+                <button onclick="toggleAuthMode()" id="btn-auth-toggle" class="text-indigo-600 font-bold hover:underline mt-1">Cadastre-se agora</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA DE SELEÇÃO DE BANCOS (HOME) -->
+    <div id="banks-screen" class="hidden flex-col min-h-screen">
+        <header class="bg-white shadow-sm border-b border-slate-200">
+            <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <img src="https://raw.githubusercontent.com/alexdovale/Aprova-o-Sem-Parar/main/Logo/logo.png" alt="Logo Aprovação Sem Parar" class="h-10 object-contain">
+                    <h1 class="text-xl font-bold text-slate-800">Meus Cadernos</h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="home-user-email" class="text-sm text-slate-600 font-medium hidden sm:block"></span>
+                    <button onclick="logoutUser()" class="text-slate-500 hover:text-red-600 transition-colors flex items-center gap-1 font-semibold text-sm">
+                        <i class="ph-bold ph-sign-out"></i> Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-10">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold text-slate-800">Seus Bancos de Questões</h2>
+                <button onclick="openNewBankModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 shadow-sm transition-colors">
+                    <i class="ph-bold ph-plus"></i> Novo Caderno
+                </button>
+            </div>
+
+            <!-- Grid de Cards de Bancos -->
+            <div id="banks-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Preenchido via JS -->
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL DE NOVO BANCO -->
+    <div id="new-bank-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animation-fadeIn">
+            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                    <i class="ph-duotone ph-folder-plus text-indigo-600 text-xl"></i> Criar Novo Caderno
+                </h3>
+                <button onclick="closeNewBankModal()" class="text-slate-400 hover:text-slate-700"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+            <form id="form-new-bank" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nome do Concurso / Assunto</label>
+                    <input type="text" id="input-bank-name" required placeholder="Ex: CFO CBMERJ, Matemática Geral..." class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Ícone</label>
+                    <div class="flex gap-2">
+                        <label class="cursor-pointer"><input type="radio" name="bank-icon" value="ph-fire" checked class="peer hidden"><div class="p-2 border rounded-lg peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 text-slate-400 text-2xl"><i class="ph-fill ph-fire"></i></div></label>
+                        <label class="cursor-pointer"><input type="radio" name="bank-icon" value="ph-shield-star" class="peer hidden"><div class="p-2 border rounded-lg peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 text-slate-400 text-2xl"><i class="ph-fill ph-shield-star"></i></div></label>
+                        <label class="cursor-pointer"><input type="radio" name="bank-icon" value="ph-scales" class="peer hidden"><div class="p-2 border rounded-lg peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 text-slate-400 text-2xl"><i class="ph-fill ph-scales"></i></div></label>
+                        <label class="cursor-pointer"><input type="radio" name="bank-icon" value="ph-math-operations" class="peer hidden"><div class="p-2 border rounded-lg peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 text-slate-400 text-2xl"><i class="ph-fill ph-math-operations"></i></div></label>
+                        <label class="cursor-pointer"><input type="radio" name="bank-icon" value="ph-books" class="peer hidden"><div class="p-2 border rounded-lg peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 text-slate-400 text-2xl"><i class="ph-fill ph-books"></i></div></label>
+                    </div>
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeNewBankModal()" class="flex-1 px-4 py-2 text-slate-600 font-semibold hover:bg-slate-100 rounded-lg transition-colors">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-lg transition-colors">Criar Caderno</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- APLICATIVO PRINCIPAL (Dentro de um Banco Específico) -->
+    <div id="main-app" class="hidden flex-col min-h-screen">
+        <!-- Cabeçalho -->
+        <header class="bg-indigo-700 text-white shadow-md">
+            <div class="max-w-5xl mx-auto px-4 py-4">
+                <div class="flex items-center gap-4 mb-4">
+                    <button onclick="goToHome()" class="text-indigo-200 hover:text-white transition-colors bg-indigo-800 p-2 rounded-lg">
+                        <i class="ph-bold ph-arrow-left text-xl"></i>
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <i id="current-bank-icon" class="ph-fill ph-books text-3xl text-indigo-300"></i>
+                        <div>
+                            <h1 id="current-bank-name" class="text-xl font-bold tracking-tight leading-tight">Nome do Banco</h1>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Navegação (Abas) -->
+                <nav class="flex gap-2 bg-indigo-800 p-1 rounded-lg overflow-x-auto max-w-full">
+                    <button onclick="switchTab('list')" id="btn-list" class="nav-btn active whitespace-nowrap px-4 py-2 rounded-md bg-white text-indigo-700 font-semibold transition-colors flex items-center gap-2 text-sm">
+                        <i class="ph ph-list-dashes"></i> Acervo
+                    </button>
+                    <button onclick="switchTab('add')" id="btn-add" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm">
+                        <i class="ph ph-plus-circle"></i> Cadastrar
+                    </button>
+                    <button onclick="switchTab('import')" id="btn-import" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm bg-violet-600 hover:bg-violet-700 border border-violet-400">
+                        <i class="ph ph-magic-wand"></i> Extrair IA
+                    </button>
+                    <button onclick="switchTab('quiz')" id="btn-quiz" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm">
+                        <i class="ph ph-exam"></i> Simulado
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Conteúdo Principal -->
+        <main class="flex-grow max-w-5xl mx-auto w-full px-4 py-8">
+            <!-- ABA 1: Lista de Questões -->
+            <div id="tab-list" class="tab-content active">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="ph ph-funnel text-slate-500 text-lg"></i>
+                        <h3 class="font-bold text-slate-700">Filtros Avançados</h3>
+                        <button onclick="clearFilters()" class="ml-auto text-sm text-indigo-600 hover:text-indigo-800 font-semibold underline">Limpar Filtros</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+                        <select id="filter-materia" onchange="renderList()" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500"><option value="">Todas as Matérias</option></select>
+                        <select id="filter-assunto" onchange="renderList()" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500"><option value="">Todos os Assuntos</option></select>
+                        <select id="filter-banca" onchange="renderList()" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500"><option value="">Todas as Bancas</option></select>
+                        <select id="filter-ano" onchange="renderList()" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500"><option value="">Todos os Anos</option></select>
+                        <select id="filter-desempenho" onchange="renderList()" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
+                            <option value="">Qualquer Desempenho</option>
+                            <option value="acertou">Já Acertei</option>
+                            <option value="errou">Já Errei</option>
+                            <option value="novo">Não Resolvida</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800">Questões no Caderno</h2>
+                    <span id="total-questions" class="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-sm font-bold">Carregando...</span>
+                </div>
+                
+                <div id="questions-container" class="space-y-6"></div>
+            </div>
+
+            <!-- ABA 2: Adicionar Questão Manual -->
+            <div id="tab-add" class="tab-content max-w-2xl mx-auto">
+                <div class="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <i class="ph ph-pencil-simple-line text-indigo-600"></i> Cadastrar Manualmente
+                    </h2>
+                    
+                    <form id="add-question-form" class="space-y-5">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div><label class="block text-sm font-semibold text-slate-700 mb-1">Banca</label><input type="text" id="input-banca" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                            <div><label class="block text-sm font-semibold text-slate-700 mb-1">Ano</label><input type="number" id="input-ano" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Tipo</label>
+                                <select id="input-tipo" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <option value="Múltipla Escolha">Múltipla Escolha</option>
+                                    <option value="Certo/Errado">Certo/Errado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-semibold text-slate-700 mb-1">Matéria</label><input type="text" id="input-materia" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                            <div><label class="block text-sm font-semibold text-slate-700 mb-1">Assunto</label><input type="text" id="input-assunto" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                        </div>
+                        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Enunciado</label><textarea id="input-enunciado" rows="4" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none resize-y"></textarea></div>
+                        <div class="space-y-3">
+                            <label class="block text-sm font-semibold text-slate-700">Alternativas</label>
+                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">A</span><input type="text" id="input-opt-0" required class="flex-grow px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">B</span><input type="text" id="input-opt-1" required class="flex-grow px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">C</span><input type="text" id="input-opt-2" required class="flex-grow px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">D</span><input type="text" id="input-opt-3" required class="flex-grow px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Correta</label>
+                                <select id="input-correta" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Resolução (Opcional)</label><textarea id="input-explicacao" rows="2" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none resize-y"></textarea></div>
+                        <div class="pt-4"><button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg flex justify-center items-center gap-2"><i class="ph ph-cloud-arrow-up text-xl"></i> Salvar no Caderno</button></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ABA 2.5: Importar com IA -->
+            <div id="tab-import" class="tab-content max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200 border-t-4 border-t-violet-600">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="ph-duotone ph-robot text-4xl text-violet-600"></i>
+                        <h2 class="text-2xl font-bold text-slate-800">Extrair Questões com IA</h2>
+                    </div>
+                    <p class="text-slate-600 mb-6">Cole os textos ou anexe os PDFs. A IA vai analisar e salvar tudo automaticamente no caderno atual.</p>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-book-open-text text-violet-500"></i> 1. Edital / Assuntos</label>
+                                <label class="cursor-pointer text-xs bg-violet-50 text-violet-700 px-3 py-1.5 rounded border border-violet-200 hover:bg-violet-100 flex items-center gap-1 font-semibold shadow-sm"><i class="ph-bold ph-upload-simple"></i> Anexar PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-edital')"></label>
+                            </div>
+                            <textarea id="ai-edital" rows="3" placeholder="Insira o conteúdo programático ou temas focado neste caderno..." class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-violet-500 outline-none text-sm bg-slate-50"></textarea>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-file-text text-violet-500"></i> 2. Prova</label>
+                                <label class="cursor-pointer text-xs bg-violet-50 text-violet-700 px-3 py-1.5 rounded border border-violet-200 hover:bg-violet-100 flex items-center gap-1 font-semibold shadow-sm"><i class="ph-bold ph-upload-simple"></i> Anexar PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-prova')"></label>
+                            </div>
+                            <textarea id="ai-prova" rows="6" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-violet-500 outline-none text-sm bg-slate-50"></textarea>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-end mb-1">
+                                <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-check-square text-violet-500"></i> 3. Gabarito</label>
+                                <label class="cursor-pointer text-xs bg-violet-50 text-violet-700 px-3 py-1.5 rounded border border-violet-200 hover:bg-violet-100 flex items-center gap-1 font-semibold shadow-sm"><i class="ph-bold ph-upload-simple"></i> Anexar PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-gabarito')"></label>
+                            </div>
+                            <textarea id="ai-gabarito" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-violet-500 outline-none text-sm bg-slate-50"></textarea>
+                        </div>
+                        <div class="pt-4 border-t border-slate-200">
+                            <button id="btn-processar-ia" onclick="window.processarComIA()" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-4 px-4 rounded-xl flex justify-center items-center gap-2 text-lg shadow-md"><i class="ph-bold ph-magic-wand"></i> Iniciar Análise e Salvar</button>
+                            <p id="ai-status-msg" class="text-center text-sm text-violet-600 font-semibold mt-3 hidden animate-pulse">Lendo documentos e salvando no Firestore...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA 3: Simulado -->
+            <div id="tab-quiz" class="tab-content max-w-3xl mx-auto">
+                <div id="quiz-setup" class="bg-white rounded-xl shadow-sm p-8 text-center border border-slate-200">
+                    <i class="ph-duotone ph-exam text-6xl text-indigo-600 mb-4 inline-block"></i>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Pronto para testar seus conhecimentos?</h2>
+                    <p class="text-slate-600 mb-4">O simulado utilizará as questões listadas no Acervo. <strong class="text-indigo-600">Dica:</strong> Aplique filtros para treinar focos específicos!</p>
+                    <div class="bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-lg mb-6 inline-block">
+                        Questões selecionadas: <strong id="quiz-ready-count" class="text-xl">0</strong>
+                    </div>
+                    <button onclick="window.startQuiz()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-105 shadow-lg">Iniciar Simulado Agora</button>
+                </div>
+
+                <div id="quiz-active" class="hidden">
+                    <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+                        <span class="font-bold text-slate-700">Questão <span id="quiz-current-num">1</span> de <span id="quiz-total-num">X</span></span>
+                        <span class="text-indigo-600 font-bold bg-indigo-100 px-3 py-1 rounded-full flex items-center gap-1"><i class="ph ph-timer"></i> Em andamento</span>
+                    </div>
+                    <div id="quiz-question-container" class="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200 mb-6"></div>
+                    <div class="flex justify-between">
+                        <button id="btn-quiz-prev" onclick="window.prevQuizQuestion()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-6 rounded-lg transition-colors hidden">Anterior</button>
+                        <div class="flex-grow"></div>
+                        <button id="btn-quiz-next" onclick="window.nextQuizQuestion()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">Próxima</button>
+                        <button id="btn-quiz-finish" onclick="window.finishQuiz()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors hidden">Finalizar Simulado</button>
+                    </div>
+                </div>
+
+                <div id="quiz-results" class="hidden bg-white rounded-xl shadow-sm p-8 text-center border border-slate-200">
+                    <div id="result-icon" class="mb-4"></div>
+                    <h2 class="text-3xl font-bold text-slate-800 mb-2">Desempenho no Simulado</h2>
+                    <p class="text-xl text-slate-600 mb-6">Você acertou <strong id="result-score" class="text-indigo-600 text-2xl"></strong> de <strong id="result-total"></strong> questões.</p>
+                    <div class="w-full bg-slate-200 rounded-full h-4 mb-8 overflow-hidden">
+                        <div id="result-progress" class="bg-green-500 h-4 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                    <button onclick="window.switchTab('list')" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-lg transition-colors">Ver Gabarito no Acervo</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- SCRIPT TIPO MODULE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- 1. CONFIGURAÇÃO FIREBASE ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                // COLOQUE SUAS CHAVES AQUI QUANDO FOR PARA O GITHUB
+                apiKey: "SUA_API_KEY",
+                authDomain: "seu-projeto.firebaseapp.com",
+                projectId: "seu-projeto",
+                storageBucket: "seu-projeto.appspot.com",
+                messagingSenderId: "123456",
+                appId: "1:123:web:abc"
+            };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'aprovacao-sem-parar';
+        
+        let unsubscribeBanks = null;
+        let unsubscribeQuestions = null;
+
+        // --- 2. ESTADO GLOBAL ---
+        let currentUser = null;
+        let isLoginMode = true;
+        let banks = []; // Cadernos do usuário
+        let currentBankId = null; // ID do caderno aberto
+        let questions = []; 
+        let filteredQuestions = [];
+        const labels = ['A', 'B', 'C', 'D', 'E'];
+
+        // Utilitário de UI
+        function showToast(message, isError = false) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${isError ? 'error' : 'success'}`;
+            toast.innerHTML = `<i class="ph-bold ${isError ? 'ph-warning-octagon' : 'ph-check-circle'} text-xl"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.add('fade-out'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+        window.showToast = showToast;
+
+        // --- 3. AUTENTICAÇÃO ---
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try { await signInWithCustomToken(auth, __initial_auth_token); } catch(e){}
+            }
+        };
+        initAuth();
+
+        onAuthStateChanged(auth, (user) => {
+            document.getElementById('loading-screen').classList.add('hidden');
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('banks-screen').classList.remove('hidden');
+                document.getElementById('banks-screen').classList.add('flex');
+                document.getElementById('home-user-email').innerText = user.email;
+                loadBanksFromFirestore(); // Carrega os cadernos
+            } else {
+                currentUser = null;
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('banks-screen').classList.add('hidden');
+                document.getElementById('banks-screen').classList.remove('flex');
+                document.getElementById('main-app').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('flex');
+                if(unsubscribeBanks) unsubscribeBanks();
+                if(unsubscribeQuestions) unsubscribeQuestions();
+            }
+        });
+
+        window.toggleAuthMode = () => {
+            isLoginMode = !isLoginMode;
+            document.getElementById('btn-auth-submit').innerText = isLoginMode ? 'Entrar' : 'Criar Conta';
+            document.getElementById('auth-toggle-text').innerText = isLoginMode ? 'Não tem uma conta?' : 'Já possui uma conta?';
+            document.getElementById('btn-auth-toggle').innerText = isLoginMode ? 'Cadastre-se agora' : 'Faça login';
+        };
+
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const btn = document.getElementById('btn-auth-submit');
+            btn.disabled = true; btn.innerText = 'Aguarde...';
+
+            try {
+                if (isLoginMode) await signInWithEmailAndPassword(auth, email, password);
+                else await createUserWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                let msg = 'Erro na autenticação.';
+                if(error.code === 'auth/invalid-credential') msg = 'Email ou senha incorretos.';
+                if(error.code === 'auth/email-already-in-use') msg = 'Este e-mail já está cadastrado.';
+                showToast(msg, true);
+            } finally {
+                btn.disabled = false; btn.innerText = isLoginMode ? 'Entrar' : 'Criar Conta';
+            }
+        });
+
+        window.logoutUser = async () => { await signOut(auth); };
+
+        // --- 4. GESTÃO DE BANCOS/CADERNOS (HOME) ---
+        function loadBanksFromFirestore() {
+            if (!currentUser) return;
+            const banksRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bancos');
+            
+            unsubscribeBanks = onSnapshot(banksRef, (snapshot) => {
+                banks = [];
+                snapshot.forEach((doc) => banks.push({ id: doc.id, ...doc.data() }));
+                banks.sort((a, b) => b.createdAt - a.createdAt); // Mais novos primeiro
+                renderBanksGrid();
+            });
+        }
+
+        function renderBanksGrid() {
+            const grid = document.getElementById('banks-grid');
+            grid.innerHTML = '';
+            
+            if (banks.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 bg-white rounded-xl border border-slate-200 border-dashed"><i class="ph-duotone ph-folder-open text-6xl text-slate-300 mb-3"></i><p class="text-slate-500 font-medium">Você ainda não tem nenhum caderno de questões.</p><p class="text-sm text-slate-400 mt-1">Clique em "Novo Caderno" para começar.</p></div>`;
+                return;
+            }
+
+            banks.forEach(bank => {
+                grid.innerHTML += `
+                    <div onclick="openBank('${bank.id}', '${bank.name}', '${bank.icon}')" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between h-48">
+                        <div class="flex items-start justify-between">
+                            <div class="bg-indigo-50 text-indigo-600 p-3 rounded-lg"><i class="ph-fill ${bank.icon} text-2xl"></i></div>
+                            <button onclick="event.stopPropagation(); deleteBank('${bank.id}')" class="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><i class="ph-bold ph-trash"></i></button>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-lg mb-1 group-hover:text-indigo-700 transition-colors">${bank.name}</h3>
+                            <p class="text-sm text-slate-500 flex items-center gap-1"><i class="ph ph-folder"></i> Acessar questões</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.openNewBankModal = () => document.getElementById('new-bank-modal').classList.remove('hidden');
+        window.closeNewBankModal = () => document.getElementById('new-bank-modal').classList.add('hidden');
+
+        document.getElementById('form-new-bank').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(!currentUser) return;
+            const name = document.getElementById('input-bank-name').value;
+            const icon = document.querySelector('input[name="bank-icon"]:checked').value;
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.innerText = "Criando...";
+
+            try {
+                const docId = Date.now().toString();
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bancos', docId);
+                await setDoc(docRef, { name, icon, createdAt: Date.now() });
+                closeNewBankModal();
+                e.target.reset();
+                showToast("Caderno criado!");
+            } catch(error) {
+                console.error(error); showToast("Erro ao criar caderno.", true);
+            } finally {
+                btn.disabled = false; btn.innerText = "Criar Caderno";
+            }
+        });
+
+        window.deleteBank = async (bankId) => {
+            if(!confirm("Tem certeza? Isso apagará o caderno e TODAS as questões dentro dele.")) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bancos', bankId);
+                await deleteDoc(docRef);
+                showToast("Caderno excluído.");
+            } catch(e) {
+                console.error(e); showToast("Erro ao excluir.", true);
+            }
+        };
+
+        // --- 5. ENTRAR NO APLICATIVO (DENTRO DE UM BANCO) ---
+        window.openBank = (id, name, icon) => {
+            currentBankId = id;
+            document.getElementById('banks-screen').classList.add('hidden');
+            document.getElementById('banks-screen').classList.remove('flex');
+            
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('flex');
+            
+            document.getElementById('current-bank-name').innerText = name;
+            document.getElementById('current-bank-icon').className = `ph-fill ${icon} text-3xl text-indigo-300`;
+            
+            loadQuestionsFromBank();
+            window.switchTab('list');
+        };
+
+        window.goToHome = () => {
+            currentBankId = null;
+            if(unsubscribeQuestions) unsubscribeQuestions();
+            
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('flex');
+            
+            document.getElementById('banks-screen').classList.remove('hidden');
+            document.getElementById('banks-screen').classList.add('flex');
+        };
+
+        // --- 6. GESTÃO DE QUESTÕES (DENTRO DO BANCO) ---
+        function loadQuestionsFromBank() {
+            if (!currentUser || !currentBankId) return;
+            // Caminho alterado: /users/{uid}/bancos/{bancoId}/questoes
+            const questionsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bancos', currentBankId, 'questoes');
+            
+            if(unsubscribeQuestions) unsubscribeQuestions(); // Para de ouvir banco anterior
+
+            unsubscribeQuestions = onSnapshot(questionsRef, (snapshot) => {
+                questions = [];
+                snapshot.forEach((doc) => questions.push({ dbId: doc.id, ...doc.data() }));
+                questions.sort((a, b) => b.createdAt - a.createdAt);
+                populateFilters();
+                renderList();
+            }, (error) => { console.error(error); showToast("Erro ao carregar questões.", true); });
+        }
+
+        async function saveQuestionToFirestore(qData) {
+            if (!currentUser || !currentBankId) return;
+            const docId = Date.now().toString() + Math.floor(Math.random()*1000); 
+            const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bancos', currentBankId, 'questoes', docId);
+            await setDoc(docRef, qData);
+        }
+
+        async function updateHistoryInFirestore(dbId, novoHistorico) {
+            if (!currentUser || !currentBankId) return;
+            const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bancos', currentBankId, 'questoes', dbId);
+            await updateDoc(docRef, { historico: novoHistorico });
+        }
+
+
+        // --- 7. UI DO APLICATIVO (Abas, Filtros, Renderização) ---
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                if(el.id === 'btn-import') { el.classList.remove('bg-violet-100', 'text-violet-800'); el.classList.add('text-white', 'bg-violet-600'); } 
+                else { el.classList.remove('bg-white', 'text-indigo-700'); el.classList.add('text-white', 'hover:bg-indigo-600'); }
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            const btn = document.getElementById(`btn-${tabId}`);
+            
+            if(tabId === 'import') { btn.classList.remove('text-white', 'bg-violet-600'); btn.classList.add('bg-violet-100', 'text-violet-800'); } 
+            else { btn.classList.remove('text-white', 'hover:bg-indigo-600'); btn.classList.add('bg-white', 'text-indigo-700'); }
+
+            if (tabId === 'list') { populateFilters(); renderList(); } 
+            else if (tabId === 'quiz') {
+                document.getElementById('quiz-setup').classList.remove('hidden'); document.getElementById('quiz-active').classList.add('hidden'); document.getElementById('quiz-results').classList.add('hidden');
+                document.getElementById('quiz-ready-count').innerText = filteredQuestions.length;
+            }
+        };
+
+        window.populateFilters = () => {
+            const fillSelect = (id, arr, defaultText) => {
+                const select = document.getElementById(id); const currentVal = select.value;
+                select.innerHTML = `<option value="">${defaultText}</option>` + arr.map(item => `<option value="${item}">${item}</option>`).join('');
+                select.value = currentVal; 
+            };
+            fillSelect('filter-materia', [...new Set(questions.map(q => q.materia))].sort(), 'Todas as Matérias');
+            fillSelect('filter-assunto', [...new Set(questions.map(q => q.assunto))].sort(), 'Todos os Assuntos');
+            fillSelect('filter-banca', [...new Set(questions.map(q => q.banca))].sort(), 'Todas as Bancas');
+            fillSelect('filter-ano', [...new Set(questions.map(q => q.ano))].sort((a,b) => b-a), 'Todos os Anos');
+        };
+
+        window.clearFilters = () => {
+            ['filter-materia','filter-assunto','filter-banca','filter-ano','filter-desempenho'].forEach(id => document.getElementById(id).value = "");
+            renderList(); showToast("Filtros limpos!");
+        };
+
+        window.renderList = () => {
+            const fMateria = document.getElementById('filter-materia').value; const fAssunto = document.getElementById('filter-assunto').value;
+            const fBanca = document.getElementById('filter-banca').value; const fAno = document.getElementById('filter-ano').value; const fDesempenho = document.getElementById('filter-desempenho').value;
+
+            filteredQuestions = questions.filter(q => {
+                if (fMateria && q.materia !== fMateria) return false; if (fAssunto && q.assunto !== fAssunto) return false;
+                if (fBanca && q.banca !== fBanca) return false; if (fAno && q.ano !== fAno) return false;
+                if (fDesempenho) {
+                    if (fDesempenho === 'novo' && q.historico !== null) return false;
+                    if (fDesempenho !== 'novo' && q.historico !== fDesempenho) return false;
+                }
+                return true;
+            });
+
+            const container = document.getElementById('questions-container');
+            document.getElementById('total-questions').innerText = `${filteredQuestions.length} questões no caderno`;
+            container.innerHTML = '';
+
+            if (filteredQuestions.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 bg-white rounded-xl border border-slate-200"><i class="ph-duotone ph-magnifying-glass text-6xl text-slate-300 mb-3"></i><p class="text-slate-500">Nenhuma questão encontrada com estes filtros.</p></div>`; return;
+            }
+
+            filteredQuestions.forEach(q => {
+                let badgeHistorico = '';
+                if(q.historico === 'acertou') badgeHistorico = `<span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded flex items-center gap-1"><i class="ph-fill ph-check-circle"></i> Já Acertei</span>`;
+                else if (q.historico === 'errou') badgeHistorico = `<span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded flex items-center gap-1"><i class="ph-fill ph-x-circle"></i> Já Errei</span>`;
+                else badgeHistorico = `<span class="bg-slate-100 text-slate-500 text-xs font-bold px-2 py-1 rounded flex items-center gap-1"><i class="ph-fill ph-minus-circle"></i> Não Resolvida</span>`;
+
+                let optionsHtml = '';
+                q.opcoes.forEach((opt, i) => { optionsHtml += `<div class="p-3 border rounded-lg mb-2 text-sm text-slate-700 ${i === q.correta ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}"><span class="font-bold mr-2 ${i === q.correta ? 'text-green-600' : 'text-slate-500'}">${labels[i]})</span> ${opt} ${i === q.correta ? '<i class="ph-fill ph-check-circle text-green-600 float-right text-lg"></i>' : ''}</div>`; });
+
+                container.innerHTML += `
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-slate-800 text-white text-xs font-bold px-2 py-1 rounded">${q.banca} ${q.ano}</span>
+                                <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded">${q.materia}</span>
+                                <span class="bg-slate-200 text-slate-800 text-xs font-bold px-2 py-1 rounded">${q.assunto}</span>
+                            </div>
+                            <div class="flex items-center gap-3">${badgeHistorico}</div>
+                        </div>
+                        <div class="p-6">
+                            <p class="text-slate-800 font-medium mb-6 leading-relaxed">${q.enunciado.replace(/\n/g, '<br>')}</p>
+                            <div class="mb-4">${optionsHtml}</div>
+                            ${q.explicacao ? `<div class="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-lg text-sm text-indigo-800"><strong><i class="ph ph-info"></i> Resolução:</strong><br>${q.explicacao}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+        };
+
+        // --- 8. ADICIONAR E PROCESSAR (Restante inalterado estruturalmente, apenas salvando na subcoleção) ---
+        document.getElementById('add-question-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerHTML = 'Salvando...';
+            const q = { banca: document.getElementById('input-banca').value, ano: document.getElementById('input-ano').value, tipo: document.getElementById('input-tipo').value, materia: document.getElementById('input-materia').value, assunto: document.getElementById('input-assunto').value, enunciado: document.getElementById('input-enunciado').value, opcoes: [ document.getElementById('input-opt-0').value, document.getElementById('input-opt-1').value, document.getElementById('input-opt-2').value, document.getElementById('input-opt-3').value ], correta: parseInt(document.getElementById('input-correta').value), explicacao: document.getElementById('input-explicacao').value, historico: null, createdAt: Date.now() };
+            try { await saveQuestionToFirestore(q); this.reset(); showToast("Questão salva!"); window.switchTab('list'); } 
+            catch(e) { console.error(e); showToast("Erro.", true); } finally { btn.disabled = false; btn.innerHTML = 'Salvar no Caderno'; }
+        });
+
+        // IA
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        window.handlePDFUpload = async (event, id) => { /* ... (mesmo código pdf.js de antes) ... */ 
+            const file = event.target.files[0]; if (!file) return;
+            const textarea = document.getElementById(id); textarea.value = ''; textarea.placeholder = 'Extraindo...'; textarea.disabled = true;
+            try {
+                const arrayBuffer = await file.arrayBuffer(); const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let fullText = ''; for (let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const textContent = await page.getTextContent(); fullText += textContent.items.map(item => item.str).join(' ') + '\n'; }
+                textarea.value = fullText; showToast(`PDF lido`);
+            } catch (error) { console.error(error); showToast('Erro', true); } finally { textarea.placeholder = ''; textarea.disabled = false; event.target.value = ''; }
+        };
+
+        window.processarComIA = async () => {
+            const edital = document.getElementById('ai-edital').value; const prova = document.getElementById('ai-prova').value; const gabarito = document.getElementById('ai-gabarito').value;
+            if (!prova) return showToast("Cole a prova!", true);
+            const btn = document.getElementById('btn-processar-ia'); const statusMsg = document.getElementById('ai-status-msg');
+            btn.disabled = true; btn.innerHTML = 'Processando...'; statusMsg.classList.remove('hidden');
+
+            const apiKey = "";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: `EDITAL:\n${edital}\nPROVA:\n${prova}\nGABARITO:\n${gabarito}` }] }], systemInstruction: { parts: [{ text: "Extraia questoes. Mapeie matéria e assunto do edital. Identifique a opcao correta no gabarito (0 a 4). Gere explicacao." }] }, generationConfig: { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "OBJECT", properties: { banca: { type: "STRING" }, ano: { type: "STRING" }, tipo: { type: "STRING" }, materia: { type: "STRING" }, assunto: { type: "STRING" }, enunciado: { type: "STRING" }, opcoes: { type: "ARRAY", items: { type: "STRING" } }, correta: { type: "INTEGER" }, explicacao: { type: "STRING" } }, required: ["banca", "ano", "tipo", "materia", "assunto", "enunciado", "opcoes", "correta", "explicacao"] } } } };
+
+            try {
+                const result = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const jsonRes = await result.json(); const textResponse = jsonRes.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!textResponse) throw new Error("Resposta inválida");
+                const novasQuestoes = JSON.parse(textResponse);
+                for (const q of novasQuestoes) { q.historico = null; q.createdAt = Date.now(); await saveQuestionToFirestore(q); }
+                showToast(`${novasQuestoes.length} questões salvas!`); document.getElementById('ai-prova').value = ''; document.getElementById('ai-gabarito').value = ''; window.switchTab('list');
+            } catch (error) { console.error(error); showToast("Erro com IA.", true); } finally { btn.disabled = false; btn.innerHTML = 'Iniciar Análise'; statusMsg.classList.add('hidden'); }
+        };
+
+        // Simulado
+        let quizQuestions = []; let currentQuizIndex = 0; let userAnswers = [];
+        window.startQuiz = () => {
+            if (filteredQuestions.length === 0) return showToast("Filtre questões!", true);
+            quizQuestions = [...filteredQuestions].sort(() => Math.random() - 0.5); currentQuizIndex = 0; userAnswers = new Array(quizQuestions.length).fill(null);
+            document.getElementById('quiz-setup').classList.add('hidden'); document.getElementById('quiz-results').classList.add('hidden'); document.getElementById('quiz-active').classList.remove('hidden'); document.getElementById('quiz-total-num').innerText = quizQuestions.length; window.renderQuizQuestion();
+        };
+        window.renderQuizQuestion = () => {
+            const q = quizQuestions[currentQuizIndex]; document.getElementById('quiz-current-num').innerText = currentQuizIndex + 1;
+            let optionsHtml = ''; q.opcoes.forEach((opt, i) => { const isSel = userAnswers[currentQuizIndex] === i; optionsHtml += `<label class="cursor-pointer block"><input type="radio" name="quiz-option" value="${i}" class="hidden" onchange="window.selectQuizOption(${i})"><div class="p-4 border-2 rounded-xl mb-3 ${isSel ? 'bg-indigo-50 border-indigo-500 text-indigo-900' : 'bg-white border-slate-200'}"><span class="font-bold mr-3 bg-white w-6 h-6 inline-flex items-center justify-center rounded border ${isSel ? 'border-indigo-500 text-indigo-600' : 'border-slate-300'}">${labels[i]}</span>${opt}</div></label>`; });
+            document.getElementById('quiz-question-container').innerHTML = `<p class="text-lg text-slate-800 font-medium mb-8">${q.enunciado.replace(/\n/g, '<br>')}</p><div class="options-container">${optionsHtml}</div>`;
+            document.getElementById('btn-quiz-prev').classList.toggle('hidden', currentQuizIndex === 0);
+            if (currentQuizIndex === quizQuestions.length - 1) { document.getElementById('btn-quiz-next').classList.add('hidden'); document.getElementById('btn-quiz-finish').classList.remove('hidden'); } else { document.getElementById('btn-quiz-next').classList.remove('hidden'); document.getElementById('btn-quiz-finish').classList.add('hidden'); }
+        };
+        window.selectQuizOption = (index) => { userAnswers[currentQuizIndex] = index; window.renderQuizQuestion(); };
+        window.nextQuizQuestion = () => { if (currentQuizIndex < quizQuestions.length - 1) { currentQuizIndex++; window.renderQuizQuestion(); } };
+        window.prevQuizQuestion = () => { if (currentQuizIndex > 0) { currentQuizIndex--; window.renderQuizQuestion(); } };
+        window.finishQuiz = async () => {
+            if (userAnswers.filter(a => a === null).length > 0 && !confirm(`Tem questões em branco. Finalizar?`)) return;
+            let score = 0; const updatePromises = [];
+            quizQuestions.forEach((q, index) => {
+                if (userAnswers[index] === q.correta) { score++; updatePromises.push(updateHistoryInFirestore(q.dbId, 'acertou')); } 
+                else if (userAnswers[index] !== null) { updatePromises.push(updateHistoryInFirestore(q.dbId, 'errou')); }
+            });
+            Promise.all(updatePromises).catch(e => console.error(e));
+            document.getElementById('quiz-active').classList.add('hidden'); document.getElementById('quiz-results').classList.remove('hidden');
+            document.getElementById('result-score').innerText = score; document.getElementById('result-total').innerText = quizQuestions.length;
+            setTimeout(() => { const pb = document.getElementById('result-progress'); const perc = (score / quizQuestions.length) * 100; pb.style.width = perc + '%'; pb.className = perc >= 70 ? "bg-green-500 h-4 rounded-full transition-all duration-1000" : (perc >= 40 ? "bg-yellow-500 h-4 rounded-full transition-all duration-1000" : "bg-red-500 h-4 rounded-full transition-all duration-1000"); }, 100);
+            showToast("Simulado finalizado!");
+        };
+    </script>
+</body>
+</html>

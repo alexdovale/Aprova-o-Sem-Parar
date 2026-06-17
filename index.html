@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,58 +11,34 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- Chart.js para Estatísticas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
         .tab-content.active { display: block; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Sistema de Toasts */
-        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 60; display: flex; flex-direction: column; gap: 10px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 50; display: flex; flex-direction: column; gap: 10px; }
         .toast { min-width: 250px; padding: 16px; border-radius: 8px; color: white; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); animation: slideIn 0.3s ease-out forwards; display: flex; align-items: center; gap: 12px; }
-        .toast.success { background-color: #10B981; }
-        .toast.error { background-color: #EF4444; }
-        .toast.warning { background-color: #F59E0B; }
+        .toast.success { background-color: #4F46E5; } /* Indigo 600 */
+        .toast.error { background-color: #EF4444; } /* Red 500 */
+        .toast.warning { background-color: #F59E0B; } /* Amber 500 */
         .toast.fade-out { animation: slideOut 0.3s ease-in forwards; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-        
-        /* Modal Customizado */
-        #custom-modal-overlay { backdrop-filter: blur(4px); transition: all 0.3s ease; }
-        
-        /* Loader */
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4F46E5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* Ocultar elementos */
-        .hidden { display: none !important; }
+        /* Modal Style */
+        .modal-overlay { background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
 
-    <!-- Recipiente de Notificações -->
     <div id="toast-container"></div>
 
-    <!-- Modal Customizado de Confirmação -->
-    <div id="custom-modal-overlay" class="fixed inset-0 bg-slate-900/50 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 transform transition-all scale-95 opacity-0" id="custom-modal-content">
-            <div class="flex items-center gap-3 mb-4 text-amber-500" id="modal-icon-container">
-                <i class="ph-fill ph-warning-circle text-4xl"></i>
-                <h3 class="text-xl font-bold text-slate-800" id="modal-title">Atenção</h3>
-            </div>
-            <p class="text-slate-600 mb-6" id="modal-message">Você tem certeza que deseja realizar esta ação?</p>
-            <div class="flex justify-end gap-3">
-                <button id="modal-btn-cancel" class="px-4 py-2 rounded-lg font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Cancelar</button>
-                <button id="modal-btn-confirm" class="px-4 py-2 rounded-lg font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">Confirmar</button>
-            </div>
-        </div>
-    </div>
-
     <!-- TELA DE LOADING INICIAL -->
-    <div id="loading-screen" class="fixed inset-0 bg-slate-100 z-40 flex flex-col items-center justify-center">
-        <img src="https://raw.githubusercontent.com/alexdovale/Aprova-o-Sem-Parar/main/Logo/logo.png" alt="Aprovação Sem Parar" class="h-24 mb-6 animate-pulse">
+    <div id="loading-screen" class="fixed inset-0 bg-slate-100 z-50 flex flex-col items-center justify-center">
+        <img src="https://raw.githubusercontent.com/alexdovale/Aprova-o-Sem-Parar/main/Logo/logo.png" alt="Aprovação Sem Parar" class="h-24 object-contain animate-pulse mb-6">
         <div class="loader mb-4"></div>
         <p class="text-slate-600 font-semibold">Conectando ao Banco de Dados...</p>
     </div>
@@ -69,55 +46,49 @@
     <!-- TELA DE LOGIN / CADASTRO -->
     <div id="auth-screen" class="hidden flex-grow flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full border border-slate-200">
-            <div class="text-center mb-6">
-                <img src="https://raw.githubusercontent.com/alexdovale/Aprova-o-Sem-Parar/main/Logo/logo.png" alt="Aprovação Sem Parar" class="h-20 mx-auto mb-4">
-                <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Aprovação Sem Parar</h1>
+            <div class="text-center mb-8">
+                <img src="https://raw.githubusercontent.com/alexdovale/Aprova-o-Sem-Parar/main/Logo/logo.png" alt="Aprovação Sem Parar" class="h-20 object-contain mx-auto mb-4">
+                <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Bem-vindo(a)</h1>
                 <p class="text-slate-500 mt-1">Acesse sua plataforma de estudos</p>
             </div>
 
-            <!-- Botão de Login com Google -->
-            <button id="btn-google-login" class="w-full bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-3 mb-6 shadow-sm">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" alt="Google">
+            <!-- Botão Google -->
+            <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-3 shadow-sm mb-6">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
                 Continuar com o Google
             </button>
-            
-            <div class="flex items-center mb-6">
-                <div class="flex-grow border-t border-slate-200"></div>
-                <span class="px-3 text-sm text-slate-400 font-medium">ou com e-mail</span>
-                <div class="flex-grow border-t border-slate-200"></div>
+
+            <div class="flex items-center gap-4 mb-6">
+                <div class="flex-1 h-px bg-slate-200"></div>
+                <span class="text-sm text-slate-400 font-medium">ou com e-mail</span>
+                <div class="flex-1 h-px bg-slate-200"></div>
             </div>
 
             <form id="auth-form" class="space-y-4">
-                <!-- Campos adicionais de Cadastro (Ocultos no Login) -->
+                <!-- Campos de Cadastro (Ocultos no Login) -->
                 <div id="register-fields" class="hidden space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Nome</label>
-                            <input type="text" id="auth-nome" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <input type="text" id="auth-nome" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Sobrenome</label>
-                            <input type="text" id="auth-sobrenome" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <input type="text" id="auth-sobrenome" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                         </div>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">CPF</label>
-                        <input type="text" id="auth-cpf" placeholder="000.000.000-00" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <input type="text" id="auth-cpf" placeholder="000.000.000-00" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Endereço Completo</label>
-                        <input type="text" id="auth-endereco" placeholder="Rua, Número, Bairro, Cidade - UF" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Área / Concurso de Interesse</label>
-                        <select id="auth-area" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none">
-                            <option value="">Selecione uma área</option>
-                            <option value="CBMERJ">Bombeiros (CBMERJ)</option>
-                            <option value="PM">Polícia Militar</option>
-                            <option value="PC">Polícia Civil</option>
-                            <option value="PF/PRF">PF / PRF</option>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Área/Concurso Foco</label>
+                        <select id="auth-area" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                            <option value="Carreiras Militares (CBMERJ/PM)">Carreiras Militares (CBMERJ/PM)</option>
+                            <option value="Carreiras Policiais">Carreiras Policiais</option>
                             <option value="Tribunais">Tribunais</option>
-                            <option value="Outros">Outros / Geral</option>
+                            <option value="Área Fiscal">Área Fiscal</option>
+                            <option value="Outros">Outros</option>
                         </select>
                     </div>
                 </div>
@@ -130,7 +101,7 @@
                     <label class="block text-sm font-semibold text-slate-700 mb-1">Senha</label>
                     <input type="password" id="auth-password" required minlength="6" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                 </div>
-                <button type="submit" id="btn-auth-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md">
+                <button type="submit" id="btn-auth-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md mt-2">
                     Entrar
                 </button>
             </form>
@@ -142,104 +113,64 @@
         </div>
     </div>
 
-    <!-- APLICATIVO PRINCIPAL -->
+    <!-- PAINEL DE CADERNOS (HOME) -->
+    <div id="home-screen" class="hidden flex-grow flex-col">
+        <header class="bg-indigo-800 text-white shadow-md py-4">
+            <div class="max-w-5xl mx-auto px-4 flex items-center justify-between">
+                <img src="https://raw.githubusercontent.com/alexdovale/Aprova-o-Sem-Parar/main/Logo/logo.png" alt="Aprovação Sem Parar" class="h-10 object-contain bg-white/10 rounded p-1">
+                <div class="flex items-center gap-4">
+                    <span id="home-user-name" class="font-semibold text-sm"></span>
+                    <button onclick="logoutUser()" class="bg-indigo-700 hover:bg-indigo-900 px-3 py-1.5 rounded text-sm font-bold transition">Sair</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-5xl mx-auto w-full px-4 py-8 flex-grow">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-bold text-slate-800">Meus Cadernos</h2>
+                <button onclick="openNewCadernoModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
+                    <i class="ph ph-plus"></i> Novo Caderno
+                </button>
+            </div>
+
+            <div id="cadernos-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <!-- Cadernos carregados aqui -->
+            </div>
+        </main>
+    </div>
+
+    <!-- APLICATIVO PRINCIPAL (Dentro de um Caderno) -->
     <div id="main-app" class="hidden flex-col min-h-screen">
-        
-        <!-- Cabeçalho Principal -->
         <header class="bg-indigo-700 text-white shadow-md">
-            <div class="max-w-5xl mx-auto px-4 py-6">
+            <div class="max-w-5xl mx-auto px-4 py-4">
                 <div class="flex flex-col sm:flex-row items-center justify-between mb-4">
                     <div class="flex items-center gap-4">
-                        <img src="https://raw.githubusercontent.com/alexdovale/Aprova-o-Sem-Parar/main/Logo/logo.png" alt="Logo" class="h-12 bg-white rounded-lg p-1">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <button id="btn-back-home" onclick="closeBank()" class="hidden text-indigo-200 hover:text-white transition-colors">
-                                    <i class="ph-bold ph-arrow-left text-xl"></i>
-                                </button>
-                                <h1 id="app-main-title" class="text-2xl font-bold tracking-tight">Meus Cadernos</h1>
-                            </div>
-                            <p id="app-sub-title" class="text-indigo-200 text-sm">Painel de Estudos</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4 mt-4 sm:mt-0">
-                        <div class="text-right hidden sm:block">
-                            <p class="text-xs text-indigo-200">Bem-vindo(a),</p>
-                            <p id="user-email-display" class="text-sm font-bold truncate max-w-[150px]"></p>
-                        </div>
-                        <button onclick="logoutUser()" class="bg-indigo-800 hover:bg-indigo-900 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 border border-indigo-600">
-                            <i class="ph-bold ph-sign-out"></i> Sair
+                        <button onclick="goBackToHome()" class="bg-indigo-800 hover:bg-indigo-900 p-2 rounded-lg transition" title="Voltar aos Cadernos">
+                            <i class="ph-bold ph-arrow-left text-xl"></i>
                         </button>
+                        <div>
+                            <h1 id="app-caderno-title" class="text-2xl font-bold tracking-tight">Nome do Caderno</h1>
+                            <p class="text-indigo-200 text-sm">Aprovação Sem Parar</p>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Navegação Secundária (Exibida apenas dentro de um Banco) -->
-                <nav id="bank-navigation" class="hidden flex gap-2 bg-indigo-800 p-1 rounded-lg overflow-x-auto max-w-full">
-                    <button onclick="switchTab('list')" id="btn-list" class="nav-btn active whitespace-nowrap px-4 py-2 rounded-md bg-white text-indigo-700 font-semibold transition-colors flex items-center gap-2 text-sm">
-                        <i class="ph ph-books"></i> Acervo
-                    </button>
-                    <button onclick="switchTab('add')" id="btn-add" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm">
-                        <i class="ph ph-plus-circle"></i> Nova Questão
-                    </button>
-                    <button onclick="switchTab('import')" id="btn-import" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm bg-purple-600 hover:bg-purple-700 border border-purple-400">
-                        <i class="ph ph-magic-wand"></i> Analisador IA
-                    </button>
-                    <button onclick="switchTab('quiz')" id="btn-quiz" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm">
-                        <i class="ph ph-exam"></i> Simulado
-                    </button>
-                    <button onclick="switchTab('stats')" id="btn-stats" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm">
-                        <i class="ph ph-chart-line-up"></i> Estatísticas
-                    </button>
+                <nav class="flex gap-2 bg-indigo-800 p-1 rounded-lg overflow-x-auto max-w-full">
+                    <button onclick="switchTab('list')" id="btn-list" class="nav-btn active whitespace-nowrap px-4 py-2 rounded-md bg-white text-indigo-700 font-semibold transition-colors flex items-center gap-2 text-sm"><i class="ph ph-books"></i> Acervo</button>
+                    <button onclick="switchTab('add')" id="btn-add" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm"><i class="ph ph-plus-circle"></i> Nova Questão</button>
+                    <button onclick="switchTab('import')" id="btn-import" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm bg-purple-600 hover:bg-purple-700 border border-purple-400"><i class="ph ph-magic-wand"></i> Importar / IA</button>
+                    <button onclick="switchTab('quiz')" id="btn-quiz" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm"><i class="ph ph-exam"></i> Simulado</button>
+                    <button onclick="switchTab('stats')" id="btn-stats" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm"><i class="ph ph-chart-pie-slice"></i> Estatísticas</button>
                 </nav>
             </div>
         </header>
 
-        <!-- Conteúdo Principal -->
-        <main class="flex-grow max-w-5xl mx-auto w-full px-4 py-8 relative">
-
-            <!-- ABA 0: Seleção de Cadernos (Home) -->
-            <div id="tab-banks" class="tab-content active">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-slate-800">Seus Cadernos de Estudo</h2>
-                    <button onclick="showCreateBankForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center gap-2">
-                        <i class="ph-bold ph-plus"></i> Novo Caderno
-                    </button>
-                </div>
-
-                <!-- Formulário Oculto para Criar Banco -->
-                <div id="create-bank-form" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
-                    <h3 class="text-lg font-bold text-slate-800 mb-4">Criar Novo Caderno</h3>
-                    <div class="flex flex-col sm:flex-row gap-4 items-end">
-                        <div class="flex-grow w-full">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Nome (Ex: CFO CBMERJ, Polícia Civil)</label>
-                            <input type="text" id="new-bank-name" placeholder="Digite o nome..." class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none">
-                        </div>
-                        <div class="w-full sm:w-32">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Ícone</label>
-                            <select id="new-bank-icon" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none">
-                                <option value="ph-books">📚 Livros</option>
-                                <option value="ph-fire">🔥 Fogo</option>
-                                <option value="ph-shield">🛡️ Escudo</option>
-                                <option value="ph-math-operations">➗ Exatas</option>
-                                <option value="ph-heartbeat">⚕️ Saúde</option>
-                                <option value="ph-gavel">⚖️ Direito</option>
-                            </select>
-                        </div>
-                        <button onclick="createNewBank()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">Salvar</button>
-                        <button onclick="hideCreateBankForm()" class="w-full sm:w-auto bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-6 rounded-lg transition-colors">Cancelar</button>
-                    </div>
-                </div>
-
-                <div id="banks-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    <!-- Cadernos injetados aqui -->
-                </div>
-            </div>
-
-            <!-- ABA 1: Lista de Questões -->
-            <div id="tab-list" class="tab-content">
+        <main class="flex-grow max-w-5xl mx-auto w-full px-4 py-8">
+            <!-- ABA 1: Acervo -->
+            <div id="tab-list" class="tab-content active">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
                     <div class="flex items-center gap-2 mb-3">
-                        <i class="ph ph-funnel text-slate-500 text-lg"></i>
-                        <h3 class="font-bold text-slate-700">Filtros Avançados</h3>
+                        <i class="ph ph-funnel text-slate-500 text-lg"></i><h3 class="font-bold text-slate-700">Filtros Avançados</h3>
                         <button onclick="clearFilters()" class="ml-auto text-sm text-indigo-600 hover:text-indigo-800 font-semibold underline">Limpar Filtros</button>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
@@ -248,29 +179,21 @@
                         <select id="filter-banca" onchange="renderList()" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500"><option value="">Todas as Bancas</option></select>
                         <select id="filter-ano" onchange="renderList()" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500"><option value="">Todos os Anos</option></select>
                         <select id="filter-desempenho" onchange="renderList()" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-indigo-500">
-                            <option value="">Qualquer Desempenho</option>
-                            <option value="acertou">Já Acertei</option>
-                            <option value="errou">Já Errei</option>
-                            <option value="novo">Não Resolvida</option>
+                            <option value="">Qualquer Desempenho</option><option value="acertou">Já Acertei</option><option value="errou">Já Errei</option><option value="novo">Não Resolvida</option>
                         </select>
                     </div>
                 </div>
-
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-slate-800">Questões no Caderno</h2>
+                    <h2 class="text-2xl font-bold text-slate-800">Questões na Nuvem</h2>
                     <span id="total-questions" class="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-sm font-bold">Carregando...</span>
                 </div>
-                
                 <div id="questions-container" class="space-y-6"></div>
             </div>
 
-            <!-- ABA 2: Adicionar Questão Manual -->
+            <!-- ABA 2: Nova Questão -->
             <div id="tab-add" class="tab-content max-w-2xl mx-auto">
                 <div class="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200">
-                    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                        <i class="ph ph-pencil-simple-line text-indigo-600"></i> Cadastrar Manualmente
-                    </h2>
-                    
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2"><i class="ph ph-pencil-simple-line text-indigo-600"></i> Cadastrar Manualmente</h2>
                     <form id="add-question-form" class="space-y-5">
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div><label class="block text-sm font-semibold text-slate-700 mb-1">Banca</label><input type="text" id="input-banca" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
@@ -290,16 +213,17 @@
                         <div><label class="block text-sm font-semibold text-slate-700 mb-1">Enunciado</label><textarea id="input-enunciado" rows="4" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none resize-y"></textarea></div>
                         <div class="space-y-3">
                             <label class="block text-sm font-semibold text-slate-700">Alternativas</label>
-                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">A</span><input type="text" id="input-opt-0" required class="flex-grow px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
-                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">B</span><input type="text" id="input-opt-1" required class="flex-grow px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
-                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">C</span><input type="text" id="input-opt-2" required class="flex-grow px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
-                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">D</span><input type="text" id="input-opt-3" required class="flex-grow px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">A</span><input type="text" id="input-opt-0" required class="flex-grow px-4 py-2 rounded-lg border border-slate-300 outline-none"></div>
+                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">B</span><input type="text" id="input-opt-1" required class="flex-grow px-4 py-2 rounded-lg border border-slate-300 outline-none"></div>
+                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">C</span><input type="text" id="input-opt-2" required class="flex-grow px-4 py-2 rounded-lg border border-slate-300 outline-none"></div>
+                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">D</span><input type="text" id="input-opt-3" required class="flex-grow px-4 py-2 rounded-lg border border-slate-300 outline-none"></div>
+                            <div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-6">E</span><input type="text" id="input-opt-4" class="flex-grow px-4 py-2 rounded-lg border border-slate-300 outline-none" placeholder="Opcional"></div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                             <div>
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">Correta</label>
                                 <select id="input-correta" required class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none">
-                                    <option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option>
+                                    <option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option><option value="4">E</option>
                                 </select>
                             </div>
                         </div>
@@ -309,57 +233,92 @@
                 </div>
             </div>
 
-            <!-- ABA 2.5: Importar com IA -->
+            <!-- ABA 3: Analisador IA Melhorado -->
             <div id="tab-import" class="tab-content max-w-4xl mx-auto">
-                <div class="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200 border-t-4 border-t-purple-600">
-                    <div class="flex items-center gap-3 mb-2">
-                        <i class="ph-duotone ph-robot text-4xl text-purple-600"></i>
-                        <h2 class="text-2xl font-bold text-slate-800">Extrair Questões com IA</h2>
+                
+                <!-- SEÇÃO 1: FORMULÁRIO IA -->
+                <div id="ai-setup-section" class="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200 border-t-4 border-t-purple-600">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <i class="ph-duotone ph-magic-wand text-4xl text-purple-600"></i>
+                            <h2 class="text-2xl font-bold text-slate-800">Extração Inteligente</h2>
+                        </div>
                     </div>
-                    <p class="text-slate-600 mb-6">Cole os textos ou anexe os PDFs. A Inteligência Artificial vai analisar e salvar tudo automaticamente no caderno atual.</p>
                     
+                    <!-- Configuração da Chave API -->
+                    <div class="bg-purple-50 border border-purple-200 p-4 rounded-lg mb-6">
+                        <label class="block text-sm font-bold text-purple-900 mb-1 flex items-center gap-2">
+                            <i class="ph-fill ph-key"></i> Chave API do Google Gemini
+                        </label>
+                        <p class="text-xs text-purple-700 mb-3">Para usar a IA, insira sua chave do Google AI Studio. Ela fica salva apenas no seu navegador.</p>
+                        <div class="flex gap-2">
+                            <input type="password" id="gemini-api-key" placeholder="Cole sua chave API aqui..." class="flex-grow px-3 py-2 border border-purple-300 rounded focus:ring-2 focus:ring-purple-500 outline-none text-sm">
+                            <button onclick="saveApiKey()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm font-bold shadow-sm">Salvar Chave</button>
+                        </div>
+                    </div>
+
                     <div class="space-y-6">
                         <div>
                             <div class="flex justify-between items-end mb-1">
-                                <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-book-open-text text-purple-500"></i> 1. Edital</label>
-                                <label class="cursor-pointer text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded border border-purple-200 hover:bg-purple-100 flex items-center gap-1 font-semibold shadow-sm"><i class="ph-bold ph-upload-simple"></i> Anexar PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-edital')"></label>
+                                <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-book-open-text text-purple-500"></i> 1. Edital / Assuntos</label>
+                                <label class="cursor-pointer text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded border border-purple-200 hover:bg-purple-100 flex items-center gap-1 font-semibold"><i class="ph-bold ph-upload-simple"></i> PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-edital')"></label>
                             </div>
-                            <textarea id="ai-edital" rows="3" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50"></textarea>
+                            <textarea id="ai-edital" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50"></textarea>
                         </div>
                         <div>
                             <div class="flex justify-between items-end mb-1">
-                                <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-file-text text-purple-500"></i> 2. Prova</label>
-                                <label class="cursor-pointer text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded border border-purple-200 hover:bg-purple-100 flex items-center gap-1 font-semibold shadow-sm"><i class="ph-bold ph-upload-simple"></i> Anexar PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-prova')"></label>
+                                <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-file-text text-purple-500"></i> 2. Texto da Prova</label>
+                                <label class="cursor-pointer text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded border border-purple-200 hover:bg-purple-100 flex items-center gap-1 font-semibold"><i class="ph-bold ph-upload-simple"></i> PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-prova')"></label>
                             </div>
-                            <textarea id="ai-prova" rows="6" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50"></textarea>
+                            <textarea id="ai-prova" rows="4" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50"></textarea>
                         </div>
                         <div>
                             <div class="flex justify-between items-end mb-1">
                                 <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-check-square text-purple-500"></i> 3. Gabarito</label>
-                                <label class="cursor-pointer text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded border border-purple-200 hover:bg-purple-100 flex items-center gap-1 font-semibold shadow-sm"><i class="ph-bold ph-upload-simple"></i> Anexar PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-gabarito')"></label>
+                                <label class="cursor-pointer text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded border border-purple-200 hover:bg-purple-100 flex items-center gap-1 font-semibold"><i class="ph-bold ph-upload-simple"></i> PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-gabarito')"></label>
                             </div>
                             <textarea id="ai-gabarito" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50"></textarea>
                         </div>
                         <div class="pt-4 border-t border-slate-200">
-                            <button id="btn-processar-ia" onclick="window.processarComIA()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-4 rounded-xl flex justify-center items-center gap-2 text-lg shadow-md"><i class="ph-bold ph-magic-wand"></i> Iniciar Análise Inteligente</button>
-                            <p id="ai-status-msg" class="text-center text-sm text-purple-600 font-semibold mt-3 hidden animate-pulse">Lendo documentos e salvando no Firestore...</p>
+                            <button id="btn-processar-ia" onclick="window.processarComIA()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-4 rounded-xl flex justify-center items-center gap-2 text-lg shadow-md"><i class="ph-bold ph-robot"></i> Analisar Prova</button>
+                            <p id="ai-status-msg" class="text-center text-sm text-purple-600 font-semibold mt-3 hidden animate-pulse">Lendo documentos com a Inteligência Artificial...</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 2: REVISÃO DA IA (Oculta por padrão) -->
+                <div id="ai-review-section" class="hidden bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200 border-t-4 border-t-blue-500">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2"><i class="ph-fill ph-eye text-blue-500"></i> Revisão das Questões</h2>
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">Encontradas: <span id="ai-review-count">0</span></span>
+                    </div>
+                    <p class="text-slate-600 mb-6 text-sm">Verifique se a IA extraiu corretamente. Você pode excluir as que ficaram com defeito antes de salvar no banco de dados.</p>
+                    
+                    <div id="ai-review-list" class="space-y-4 mb-8 max-h-[60vh] overflow-y-auto p-2">
+                        <!-- Cards de revisão injetados aqui -->
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button onclick="cancelarRevisaoIA()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-6 rounded-lg transition-colors">Descartar Tudo</button>
+                        <button onclick="salvarRevisaoIA()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-md flex justify-center items-center gap-2">
+                            <i class="ph-bold ph-cloud-arrow-up"></i> Salvar <span id="ai-btn-count">0</span> Questões no Acervo
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- ABA 3: Simulado -->
+            <!-- ABA 4: Simulado -->
             <div id="tab-quiz" class="tab-content max-w-3xl mx-auto">
                 <div id="quiz-setup" class="bg-white rounded-xl shadow-sm p-8 text-center border border-slate-200">
                     <i class="ph-duotone ph-exam text-6xl text-indigo-600 mb-4 inline-block"></i>
-                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Pronto para o Simulado?</h2>
-                    <p class="text-slate-600 mb-4">O simulado utilizará as questões deste caderno. <strong class="text-indigo-600">Dica:</strong> Se aplicar filtros na aba "Acervo", o simulado usará apenas elas!</p>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Pronto para testar?</h2>
+                    <p class="text-slate-600 mb-4">O simulado utilizará as questões do filtro atual na aba Acervo.</p>
                     <div class="bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-lg mb-6 inline-block">
                         Questões selecionadas: <strong id="quiz-ready-count" class="text-xl">0</strong>
                     </div>
-                    <button onclick="window.startQuiz()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-105 shadow-lg">Iniciar Simulado</button>
+                    <button onclick="window.startQuiz()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-105 shadow-lg">Iniciar Simulado Agora</button>
                 </div>
-
+                <!-- Tela do Simulado Ativo e Resultados (mantidos igual) -->
                 <div id="quiz-active" class="hidden">
                     <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
                         <span class="font-bold text-slate-700">Questão <span id="quiz-current-num">1</span> de <span id="quiz-total-num">X</span></span>
@@ -370,47 +329,40 @@
                         <button id="btn-quiz-prev" onclick="window.prevQuizQuestion()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-6 rounded-lg transition-colors hidden">Anterior</button>
                         <div class="flex-grow"></div>
                         <button id="btn-quiz-next" onclick="window.nextQuizQuestion()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">Próxima</button>
-                        <button id="btn-quiz-finish" onclick="window.finishQuiz()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors hidden">Finalizar Simulado</button>
+                        <button id="btn-quiz-finish" onclick="window.requestFinishQuiz()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors hidden">Finalizar Simulado</button>
                     </div>
                 </div>
-
                 <div id="quiz-results" class="hidden bg-white rounded-xl shadow-sm p-8 text-center border border-slate-200">
                     <div id="result-icon" class="mb-4"></div>
                     <h2 class="text-3xl font-bold text-slate-800 mb-2">Desempenho no Simulado</h2>
                     <p class="text-xl text-slate-600 mb-6">Você acertou <strong id="result-score" class="text-indigo-600 text-2xl"></strong> de <strong id="result-total"></strong> questões.</p>
-                    <div class="w-full bg-slate-200 rounded-full h-4 mb-8 overflow-hidden">
-                        <div id="result-progress" class="bg-green-500 h-4 rounded-full transition-all duration-1000" style="width: 0%"></div>
-                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-4 mb-8 overflow-hidden"><div id="result-progress" class="bg-green-500 h-4 rounded-full transition-all duration-1000" style="width: 0%"></div></div>
                     <button onclick="window.switchTab('list')" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-lg transition-colors">Ver Gabarito no Acervo</button>
                 </div>
             </div>
 
-            <!-- ABA 4: Estatísticas -->
+            <!-- ABA 5: Estatísticas -->
             <div id="tab-stats" class="tab-content">
-                <div class="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200">
-                    <div class="flex items-center gap-3 mb-6">
-                        <i class="ph-duotone ph-chart-pie-slice text-4xl text-indigo-600"></i>
-                        <h2 class="text-2xl font-bold text-slate-800">Desempenho Geral no Caderno</h2>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-                        <div class="bg-indigo-50 border border-indigo-100 p-6 rounded-xl text-center">
-                            <p class="text-indigo-600 font-semibold mb-1">Questões Resolvidas</p>
-                            <h3 class="text-3xl font-bold text-indigo-800" id="stat-total-resolvidas">0</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="ph-fill ph-target text-indigo-500"></i> Visão Geral</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-100 text-center">
+                                <span class="block text-sm text-green-600 font-bold uppercase tracking-wider mb-1">Acertos</span>
+                                <span id="stat-acertos" class="text-3xl font-black text-green-700">0</span>
+                            </div>
+                            <div class="bg-red-50 p-4 rounded-lg border border-red-100 text-center">
+                                <span class="block text-sm text-red-600 font-bold uppercase tracking-wider mb-1">Erros</span>
+                                <span id="stat-erros" class="text-3xl font-black text-red-700">0</span>
+                            </div>
                         </div>
-                        <div class="bg-green-50 border border-green-100 p-6 rounded-xl text-center">
-                            <p class="text-green-600 font-semibold mb-1">Total de Acertos</p>
-                            <h3 class="text-3xl font-bold text-green-800" id="stat-total-acertos">0</h3>
-                        </div>
-                        <div class="bg-red-50 border border-red-100 p-6 rounded-xl text-center">
-                            <p class="text-red-600 font-semibold mb-1">Total de Erros</p>
-                            <h3 class="text-3xl font-bold text-red-800" id="stat-total-erros">0</h3>
+                        <div class="mt-6">
+                            <canvas id="chartGeral" height="200"></canvas>
                         </div>
                     </div>
-
-                    <h3 class="text-xl font-bold text-slate-800 mb-4">Aproveitamento por Matéria</h3>
-                    <div id="stats-materias-container" class="space-y-4">
-                        <!-- Barras de progresso injetadas pelo JS -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="ph-fill ph-chart-bar text-indigo-500"></i> Desempenho por Matéria</h3>
+                        <canvas id="chartMaterias" height="250"></canvas>
                     </div>
                 </div>
             </div>
@@ -418,11 +370,24 @@
         </main>
     </div>
 
-    <!-- SCRIPT TIPO MODULE (Requisito para o Firebase V11) -->
+    <!-- MODAL CUSTOMIZADO (Para exclusão e alertas) -->
+    <div id="custom-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 transform scale-95 transition-transform duration-200" id="modal-content-box">
+            <div id="modal-icon" class="text-center mb-4"></div>
+            <h3 id="modal-title" class="text-xl font-bold text-center text-slate-800 mb-2">Título</h3>
+            <p id="modal-desc" class="text-slate-600 text-center mb-6">Descrição</p>
+            <div class="flex gap-3">
+                <button onclick="closeModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg transition-colors">Cancelar</button>
+                <button id="modal-confirm-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT TIPO MODULE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- 1. CONFIGURAÇÃO FIREBASE ---
         const firebaseConfig = {
@@ -437,9 +402,9 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const googleProvider = new GoogleAuthProvider();
         const db = getFirestore(app);
         const appId = 'questoes-estudos-aprovar';
+        const googleProvider = new GoogleAuthProvider();
         
         let unsubscribeBanks = null;
         let unsubscribeQuestions = null;
@@ -447,69 +412,68 @@
         // --- 2. ESTADO GLOBAL ---
         let currentUser = null;
         let isLoginMode = true;
-        let banks = [];
-        let currentBankId = null;
+        let cadernos = [];
+        let currentCadernoId = null;
         let questions = []; 
         let filteredQuestions = [];
+        let chartGeralInstance = null;
+        let chartMateriasInstance = null;
+        let pendingAIQuestions = []; // Para a revisão da IA
         const labels = ['A', 'B', 'C', 'D', 'E'];
 
-        // --- FUNÇÕES UI GLOBAIS ---
-        function showToast(message, isError = false, isWarning = false) {
+        // --- UI UTILS ---
+        window.showToast = (message, isError = false) => {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            let typeClass = isError ? 'error' : (isWarning ? 'warning' : 'success');
-            let icon = isError ? 'ph-warning-octagon' : (isWarning ? 'ph-warning' : 'ph-check-circle');
-            toast.className = `toast ${typeClass}`;
-            toast.innerHTML = `<i class="ph-bold ${icon} text-xl"></i> <span>${message}</span>`;
+            toast.className = `toast ${isError ? 'error' : 'success'}`;
+            toast.innerHTML = `<i class="ph-bold ${isError ? 'ph-warning-octagon' : 'ph-check-circle'} text-xl"></i> <span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => { toast.classList.add('fade-out'); setTimeout(() => toast.remove(), 300); }, 3000);
-        }
-        window.showToast = showToast;
+        };
 
-        function showCustomConfirm(message, onConfirm) {
-            const overlay = document.getElementById('custom-modal-overlay');
-            const content = document.getElementById('custom-modal-content');
-            const msgEl = document.getElementById('modal-message');
-            const btnCancel = document.getElementById('modal-btn-cancel');
-            const btnConfirm = document.getElementById('modal-btn-confirm');
+        window.openModal = (title, desc, confirmText, confirmClass, onConfirm, iconHtml) => {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerText = desc;
+            const btn = document.getElementById('modal-confirm-btn');
+            btn.innerText = confirmText;
+            btn.className = `flex-1 font-bold py-2 px-4 rounded-lg transition-colors text-white ${confirmClass}`;
+            btn.onclick = () => { onConfirm(); closeModal(); };
+            document.getElementById('modal-icon').innerHTML = iconHtml || '<i class="ph-duotone ph-warning text-5xl text-amber-500"></i>';
+            const modal = document.getElementById('custom-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => document.getElementById('modal-content-box').classList.remove('scale-95'), 10);
+        };
 
-            msgEl.innerText = message;
-            overlay.classList.remove('hidden');
-            
-            // Pequeno delay para a animação
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
+        window.closeModal = () => {
+            document.getElementById('modal-content-box').classList.add('scale-95');
+            setTimeout(() => document.getElementById('custom-modal').classList.add('hidden'), 200);
+        };
 
-            const close = () => {
-                content.classList.remove('scale-100', 'opacity-100');
-                content.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
-            };
-
-            btnCancel.onclick = close;
-            btnConfirm.onclick = () => { close(); onConfirm(); };
-        }
-        window.showCustomConfirm = showCustomConfirm;
-
-        // --- 3. AUTENTICAÇÃO E PERFIL ---
-        onAuthStateChanged(auth, (user) => {
-            const loadingScreen = document.getElementById('loading-screen');
-            const authScreen = document.getElementById('auth-screen');
-            const mainApp = document.getElementById('main-app');
-            loadingScreen.classList.add('hidden');
-            
+        // --- 3. AUTENTICAÇÃO ---
+        onAuthStateChanged(auth, async (user) => {
+            document.getElementById('loading-screen').classList.add('hidden');
             if (user) {
                 currentUser = user;
-                authScreen.classList.add('hidden');
-                mainApp.classList.remove('hidden'); mainApp.classList.add('flex');
-                document.getElementById('user-email-display').innerText = user.displayName || user.email;
-                loadBanksFromFirestore();
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.add('hidden');
+                document.getElementById('home-screen').classList.remove('hidden');
+                document.getElementById('home-screen').classList.add('flex');
+                
+                let displayName = user.displayName;
+                if(!displayName) {
+                    try {
+                        const perfilSnap = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'perfil', 'dados'));
+                        if(perfilSnap.exists()) displayName = perfilSnap.data().nome;
+                    } catch(e){}
+                }
+                document.getElementById('home-user-name').innerText = `Olá, ${displayName || user.email.split('@')[0]}`;
+                loadCadernos();
             } else {
                 currentUser = null;
-                authScreen.classList.remove('hidden');
-                mainApp.classList.add('hidden'); mainApp.classList.remove('flex');
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('home-screen').classList.add('hidden');
+                document.getElementById('home-screen').classList.remove('flex');
+                document.getElementById('main-app').classList.add('hidden');
                 if(unsubscribeBanks) unsubscribeBanks();
                 if(unsubscribeQuestions) unsubscribeQuestions();
             }
@@ -517,33 +481,12 @@
 
         window.toggleAuthMode = () => {
             isLoginMode = !isLoginMode;
+            document.getElementById('register-fields').classList.toggle('hidden', isLoginMode);
             document.getElementById('btn-auth-submit').innerText = isLoginMode ? 'Entrar' : 'Criar Conta';
             document.getElementById('auth-toggle-text').innerText = isLoginMode ? 'Não tem uma conta?' : 'Já possui uma conta?';
             document.getElementById('btn-auth-toggle').innerText = isLoginMode ? 'Cadastre-se agora' : 'Faça login';
-            
-            // Mostrar/Ocultar e exigir campos de registro
-            const registerFields = document.getElementById('register-fields');
-            const inputs = registerFields.querySelectorAll('input, select');
-            if (isLoginMode) {
-                registerFields.classList.add('hidden');
-                inputs.forEach(input => input.removeAttribute('required'));
-            } else {
-                registerFields.classList.remove('hidden');
-                inputs.forEach(input => input.setAttribute('required', 'true'));
-            }
         };
 
-        // Login Google
-        document.getElementById('btn-google-login').addEventListener('click', async () => {
-            try {
-                await signInWithPopup(auth, googleProvider);
-                showToast('Login com Google realizado com sucesso!');
-            } catch (error) {
-                console.error(error); showToast('Erro ao logar com Google.', true);
-            }
-        });
-
-        // Email / Senha
         document.getElementById('auth-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('auth-email').value;
@@ -554,203 +497,215 @@
             try {
                 if (isLoginMode) {
                     await signInWithEmailAndPassword(auth, email, password);
-                    showToast('Login realizado!');
                 } else {
                     const nome = document.getElementById('auth-nome').value;
                     const sobrenome = document.getElementById('auth-sobrenome').value;
                     const cpf = document.getElementById('auth-cpf').value;
-                    const endereco = document.getElementById('auth-endereco').value;
                     const area = document.getElementById('auth-area').value;
+                    
+                    if(!nome || !sobrenome) throw new Error("Nome é obrigatório.");
 
                     const userCred = await createUserWithEmailAndPassword(auth, email, password);
                     await updateProfile(userCred.user, { displayName: `${nome} ${sobrenome}` });
-                    
-                    // Salvar dados sensíveis em pasta segura do Firestore
-                    const profileRef = doc(db, 'artifacts', appId, 'users', userCred.user.uid, 'perfil', 'dados');
-                    await setDoc(profileRef, { nome, sobrenome, cpf, endereco, area, email, createdAt: new Date().toISOString() });
-                    
+                    await setDoc(doc(db, 'artifacts', appId, 'users', userCred.user.uid, 'perfil', 'dados'), {
+                        nome, sobrenome, cpf, area, email, createdAt: new Date().toISOString()
+                    });
                     showToast('Conta criada com sucesso!');
                 }
             } catch (error) {
                 console.error(error);
                 let msg = 'Erro na autenticação.';
                 if(error.code === 'auth/invalid-credential') msg = 'Email ou senha incorretos.';
-                if(error.code === 'auth/email-already-in-use') msg = 'Este e-mail já está cadastrado.';
+                if(error.code === 'auth/email-already-in-use') msg = 'E-mail já cadastrado.';
+                if(error.message === 'Nome é obrigatório.') msg = error.message;
                 showToast(msg, true);
             } finally {
                 btn.disabled = false; btn.innerText = isLoginMode ? 'Entrar' : 'Criar Conta';
             }
         });
 
-        window.logoutUser = async () => { await signOut(auth); showToast('Você saiu do sistema.'); };
+        window.loginWithGoogle = async () => {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+                const perfilSnap = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'perfil', 'dados'));
+                if(!perfilSnap.exists()) {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'perfil', 'dados'), {
+                        nome: user.displayName, email: user.email, provider: 'google', createdAt: new Date().toISOString()
+                    });
+                }
+            } catch (error) {
+                console.error(error); showToast('Erro no login com Google', true);
+            }
+        };
 
-        // --- 4. BANCOS (CADERNOS) NO FIRESTORE ---
-        function loadBanksFromFirestore() {
+        window.logoutUser = async () => await signOut(auth);
+
+        // --- 4. CADERNOS (HOME) ---
+        function loadCadernos() {
             if (!currentUser) return;
-            const banksRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bancos');
-            unsubscribeBanks = onSnapshot(banksRef, (snapshot) => {
-                banks = [];
-                snapshot.forEach(doc => banks.push({ id: doc.id, ...doc.data() }));
-                renderBanks();
+            const ref = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos');
+            unsubscribeBanks = onSnapshot(ref, (snapshot) => {
+                cadernos = [];
+                snapshot.forEach(doc => cadernos.push({ id: doc.id, ...doc.data() }));
+                renderCadernos();
             });
         }
 
-        window.showCreateBankForm = () => document.getElementById('create-bank-form').classList.remove('hidden');
-        window.hideCreateBankForm = () => {
-            document.getElementById('create-bank-form').classList.add('hidden');
-            document.getElementById('new-bank-name').value = '';
-        };
-
-        window.createNewBank = async () => {
-            const name = document.getElementById('new-bank-name').value.trim();
-            const icon = document.getElementById('new-bank-icon').value;
-            if(!name) return showToast('Digite um nome para o caderno.', true);
-            
-            const bankId = 'bank_' + Date.now();
-            const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bancos', bankId);
-            await setDoc(docRef, { name, icon, createdAt: new Date().toISOString() });
-            
-            showToast('Caderno criado!');
-            window.hideCreateBankForm();
-        };
-
-        window.deleteBank = (bankId, e) => {
-            e.stopPropagation();
-            window.showCustomConfirm("Tem certeza que deseja excluir este caderno? Todas as questões nele serão perdidas.", async () => {
-                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bancos', bankId);
-                await deleteDoc(docRef);
-                showToast('Caderno excluído.');
-            });
-        };
-
-        function renderBanks() {
-            const container = document.getElementById('banks-container');
-            container.innerHTML = '';
-            if(banks.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-12"><i class="ph-duotone ph-folder-open text-6xl text-slate-300 mb-3"></i><p class="text-slate-500">Nenhum caderno criado. Crie seu primeiro caderno para começar!</p></div>`;
+        function renderCadernos() {
+            const grid = document.getElementById('cadernos-grid');
+            grid.innerHTML = '';
+            if(cadernos.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12"><p class="text-slate-500 mb-2">Você ainda não tem cadernos.</p><p class="text-sm">Clique em "Novo Caderno" para começar.</p></div>`;
                 return;
             }
-            banks.forEach(bank => {
-                container.innerHTML += `
-                    <div onclick="openBank('${bank.id}', '${bank.name}')" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 cursor-pointer hover:shadow-md hover:border-indigo-300 transition-all group relative">
-                        <button onclick="deleteBank('${bank.id}', event)" class="absolute top-4 right-4 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-trash text-lg"></i></button>
-                        <div class="bg-indigo-50 w-14 h-14 rounded-lg flex items-center justify-center mb-4 text-indigo-600"><i class="ph-duotone ${bank.icon} text-3xl"></i></div>
-                        <h3 class="font-bold text-lg text-slate-800">${bank.name}</h3>
-                        <p class="text-sm text-slate-500 mt-1">Clique para abrir</p>
-                    </div>`;
+            cadernos.forEach(cad => {
+                grid.innerHTML += `
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition cursor-pointer flex flex-col items-center text-center relative group" onclick="openCaderno('${cad.id}', '${cad.nome}')">
+                        <button onclick="event.stopPropagation(); deleteCaderno('${cad.id}', '${cad.nome}')" class="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="ph-fill ph-trash text-xl"></i></button>
+                        <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center mb-4 text-indigo-600 text-3xl"><i class="ph-fill ${cad.icone || 'ph-book'}"></i></div>
+                        <h3 class="font-bold text-slate-800 text-lg mb-1">${cad.nome}</h3>
+                        <p class="text-xs text-slate-400">Clique para abrir</p>
+                    </div>
+                `;
             });
         }
 
-        window.openBank = (bankId, bankName) => {
-            currentBankId = bankId;
-            document.getElementById('app-main-title').innerText = bankName;
-            document.getElementById('app-sub-title').innerText = "Caderno Aberto";
-            document.getElementById('btn-back-home').classList.remove('hidden');
-            document.getElementById('bank-navigation').classList.remove('hidden');
+        window.openNewCadernoModal = () => {
+            const nome = prompt("Qual o nome do novo Caderno? (Ex: CFO CBMERJ, Polícia Civil)");
+            if(nome && nome.trim() !== '') {
+                const newId = 'cad_' + Date.now();
+                setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', newId), {
+                    nome: nome.trim(), icone: 'ph-notebook', createdAt: new Date().toISOString()
+                }).then(() => showToast("Caderno criado!"));
+            }
+        };
+
+        window.deleteCaderno = (id, nome) => {
+            window.openModal(
+                `Excluir ${nome}?`, "Esta ação apagará o caderno e TODAS as questões dentro dele. Não pode ser desfeita.",
+                "Sim, Excluir", "bg-red-600 hover:bg-red-700",
+                () => {
+                    deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', id))
+                    .then(() => showToast("Caderno excluído."));
+                },
+                '<i class="ph-duotone ph-trash text-5xl text-red-500"></i>'
+            );
+        };
+
+        window.openCaderno = (id, nome) => {
+            currentCadernoId = id;
+            document.getElementById('home-screen').classList.add('hidden');
+            document.getElementById('home-screen').classList.remove('flex');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('flex');
+            document.getElementById('app-caderno-title').innerText = nome;
             
-            // Oculta div de seleção e mostra a Lista do banco
-            document.getElementById('tab-banks').classList.remove('active');
+            // Carrega a chave API salva localmente
+            const savedKey = localStorage.getItem('gemini_api_key');
+            if(savedKey) document.getElementById('gemini-api-key').value = savedKey;
+
+            loadQuestionsForCaderno();
             window.switchTab('list');
-            loadQuestionsFromFirestore();
         };
 
-        window.closeBank = () => {
-            currentBankId = null;
+        window.goBackToHome = () => {
             if(unsubscribeQuestions) unsubscribeQuestions();
-            document.getElementById('app-main-title').innerText = "Meus Cadernos";
-            document.getElementById('app-sub-title').innerText = "Painel de Estudos";
-            document.getElementById('btn-back-home').classList.add('hidden');
-            document.getElementById('bank-navigation').classList.add('hidden');
-            
-            // Esconde todas as abas e mostra apenas a de Bancos
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-banks').classList.add('active');
+            currentCadernoId = null; questions = []; filteredQuestions = [];
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('flex');
+            document.getElementById('home-screen').classList.remove('hidden');
+            document.getElementById('home-screen').classList.add('flex');
         };
 
-        // --- 5. QUESTÕES DO CADERNO ATUAL ---
-        function loadQuestionsFromFirestore() {
-            if (!currentUser || !currentBankId) return;
-            const qRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bancos', currentBankId, 'questoes');
-            unsubscribeQuestions = onSnapshot(qRef, (snapshot) => {
+        // --- 5. QUESTÕES (DENTRO DO CADERNO) ---
+        function loadQuestionsForCaderno() {
+            if (!currentUser || !currentCadernoId) return;
+            const ref = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', currentCadernoId, 'questoes');
+            unsubscribeQuestions = onSnapshot(ref, (snapshot) => {
                 questions = [];
                 snapshot.forEach(doc => questions.push({ dbId: doc.id, ...doc.data() }));
                 questions.sort((a, b) => a.id - b.id);
-                window.populateFilters(); window.renderList();
+                populateFilters(); renderList(); updateStats();
             });
         }
 
-        async function saveQuestionToFirestore(qData) {
-            if (!currentUser || !currentBankId) return;
-            const docId = Date.now().toString() + Math.floor(Math.random()*1000);
-            const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bancos', currentBankId, 'questoes', docId);
-            await setDoc(docRef, qData);
-        }
-
-        async function updateHistoryInFirestore(dbId, novoHistorico) {
-            if (!currentUser || !currentBankId) return;
-            const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bancos', currentBankId, 'questoes', dbId);
-            await updateDoc(docRef, { historico: novoHistorico });
-        }
-
-        // --- 6. NAVEGAÇÃO INTERNA E LISTAGEM ---
         window.switchTab = (tabId) => {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => {
-                if(el.id === 'btn-import') { el.classList.remove('bg-purple-100', 'text-purple-800'); el.classList.add('text-white', 'bg-purple-600'); }
-                else { el.classList.remove('bg-white', 'text-indigo-700'); el.classList.add('text-white', 'hover:bg-indigo-600'); }
+                if(el.id === 'btn-import') el.className = "nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm bg-purple-600 hover:bg-purple-700 border border-purple-400";
+                else el.className = "nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm";
             });
 
             document.getElementById(`tab-${tabId}`).classList.add('active');
             const btn = document.getElementById(`btn-${tabId}`);
-            
-            if(tabId === 'import') { btn.classList.remove('text-white', 'bg-purple-600'); btn.classList.add('bg-purple-100', 'text-purple-800'); }
-            else if(btn) { btn.classList.remove('text-white', 'hover:bg-indigo-600'); btn.classList.add('bg-white', 'text-indigo-700'); }
+            if(tabId === 'import') btn.classList.add('ring-2', 'ring-white');
+            else { btn.classList.remove('text-white', 'hover:bg-indigo-600'); btn.classList.add('bg-white', 'text-indigo-700'); }
 
-            if (tabId === 'list') { window.populateFilters(); window.renderList(); }
+            if (tabId === 'list') { populateFilters(); renderList(); } 
             else if (tabId === 'quiz') {
                 document.getElementById('quiz-setup').classList.remove('hidden');
                 document.getElementById('quiz-active').classList.add('hidden');
                 document.getElementById('quiz-results').classList.add('hidden');
                 document.getElementById('quiz-ready-count').innerText = filteredQuestions.length;
-            } else if (tabId === 'stats') {
-                window.renderStats();
-            }
+            } else if (tabId === 'stats') { updateStats(); }
         };
 
         window.populateFilters = () => {
-            const materias = [...new Set(questions.map(q => q.materia))].sort();
-            const assuntos = [...new Set(questions.map(q => q.assunto))].sort();
-            const bancas = [...new Set(questions.map(q => q.banca))].sort();
-            const anos = [...new Set(questions.map(q => q.ano))].sort((a,b) => b-a);
-            const fillSelect = (id, arr, def) => { const s = document.getElementById(id); const v = s.value; s.innerHTML = `<option value="">${def}</option>` + arr.map(i => `<option value="${i}">${i}</option>`).join(''); s.value = v; };
-            fillSelect('filter-materia', materias, 'Todas as Matérias'); fillSelect('filter-assunto', assuntos, 'Todos os Assuntos');
-            fillSelect('filter-banca', bancas, 'Todas as Bancas'); fillSelect('filter-ano', anos, 'Todos os Anos');
+            const fill = (id, prop, def) => {
+                const s = document.getElementById(id); const cur = s.value;
+                const arr = [...new Set(questions.map(q => q[prop]))].filter(Boolean).sort();
+                s.innerHTML = `<option value="">${def}</option>` + arr.map(i => `<option value="${i}">${i}</option>`).join('');
+                s.value = cur; 
+            };
+            fill('filter-materia', 'materia', 'Todas as Matérias');
+            fill('filter-assunto', 'assunto', 'Todos os Assuntos');
+            fill('filter-banca', 'banca', 'Todas as Bancas');
+            fill('filter-ano', 'ano', 'Todos os Anos');
         };
 
-        window.clearFilters = () => { ['materia','assunto','banca','ano','desempenho'].forEach(f => document.getElementById('filter-'+f).value = ""); window.renderList(); showToast("Filtros limpos!"); };
+        window.clearFilters = () => {
+            ['materia','assunto','banca','ano','desempenho'].forEach(id => document.getElementById(`filter-${id}`).value = "");
+            renderList(); showToast("Filtros limpos!");
+        };
 
         window.renderList = () => {
-            const fMat = document.getElementById('filter-materia').value, fAss = document.getElementById('filter-assunto').value, fBanca = document.getElementById('filter-banca').value, fAno = document.getElementById('filter-ano').value, fDes = document.getElementById('filter-desempenho').value;
-            filteredQuestions = questions.filter(q => (!fMat || q.materia === fMat) && (!fAss || q.assunto === fAss) && (!fBanca || q.banca === fBanca) && (!fAno || q.ano === fAno) && (!fDes || (fDes === 'novo' ? q.historico === null : q.historico === fDes)));
+            const fM = document.getElementById('filter-materia').value, fAs = document.getElementById('filter-assunto').value;
+            const fB = document.getElementById('filter-banca').value, fAn = document.getElementById('filter-ano').value;
+            const fD = document.getElementById('filter-desempenho').value;
+
+            filteredQuestions = questions.filter(q => {
+                if (fM && q.materia !== fM) return false; if (fAs && q.assunto !== fAs) return false;
+                if (fB && q.banca !== fB) return false; if (fAn && q.ano !== fAn) return false;
+                if (fD && ((fD==='novo' && q.historico!==null) || (fD!=='novo' && q.historico!==fD))) return false;
+                return true;
+            });
 
             const container = document.getElementById('questions-container');
-            document.getElementById('total-questions').innerText = `${filteredQuestions.length} questões neste caderno`;
+            document.getElementById('total-questions').innerText = `${filteredQuestions.length} questões`;
             container.innerHTML = '';
-            if (filteredQuestions.length === 0) return container.innerHTML = `<div class="text-center py-12 bg-white rounded-xl border border-slate-200"><i class="ph-duotone ph-cloud-slash text-6xl text-slate-300 mb-3"></i><p class="text-slate-500">Nenhuma questão encontrada.</p></div>`;
+            if (filteredQuestions.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 bg-white rounded-xl border border-slate-200"><i class="ph-duotone ph-magnifying-glass text-6xl text-slate-300 mb-3"></i><p class="text-slate-500">Nenhuma questão encontrada.</p></div>`;
+                return;
+            }
 
             [...filteredQuestions].reverse().forEach(q => {
-                let badge = q.historico === 'acertou' ? `<span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded"><i class="ph-fill ph-check-circle"></i> Acertei</span>` : (q.historico === 'errou' ? `<span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded"><i class="ph-fill ph-x-circle"></i> Errei</span>` : `<span class="bg-slate-100 text-slate-500 text-xs font-bold px-2 py-1 rounded"><i class="ph-fill ph-minus-circle"></i> Nova</span>`);
-                let opts = q.opcoes.map((opt, i) => `<div class="p-3 border rounded-lg mb-2 text-sm text-slate-700 ${i === q.correta ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}"><span class="font-bold mr-2 ${i === q.correta ? 'text-green-600' : 'text-slate-500'}">${labels[i]})</span> ${opt} ${i === q.correta ? '<i class="ph-fill ph-check-circle text-green-600 float-right text-lg"></i>' : ''}</div>`).join('');
-
+                let badge = q.historico === 'acertou' ? `<span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded"><i class="ph-fill ph-check-circle"></i> Já Acertei</span>` :
+                            q.historico === 'errou' ? `<span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded"><i class="ph-fill ph-x-circle"></i> Já Errei</span>` :
+                            `<span class="bg-slate-100 text-slate-500 text-xs font-bold px-2 py-1 rounded"><i class="ph-fill ph-minus-circle"></i> Não Resolvida</span>`;
+                let opts = '';
+                q.opcoes.forEach((opt, i) => {
+                    if(!opt) return;
+                    opts += `<div class="p-3 border rounded-lg mb-2 text-sm ${i === q.correta ? 'bg-green-50 border-green-200 font-medium' : 'bg-slate-50 border-slate-200'}"><span class="font-bold mr-2 ${i === q.correta ? 'text-green-600' : 'text-slate-500'}">${labels[i]})</span> ${opt} ${i === q.correta ? '<i class="ph-fill ph-check-circle text-green-600 float-right text-lg"></i>' : ''}</div>`;
+                });
                 container.innerHTML += `
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
-                            <div class="flex flex-wrap gap-2">
-                                <span class="bg-slate-800 text-white text-xs font-bold px-2 py-1 rounded">${q.banca} ${q.ano}</span>
-                                <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded">${q.materia}</span>
-                                <span class="bg-slate-200 text-slate-800 text-xs font-bold px-2 py-1 rounded">${q.assunto}</span>
-                            </div>
-                            <div class="flex items-center gap-3">${badge}</div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative group">
+                        <button onclick="deleteQuestion('${q.dbId}')" class="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="ph-fill ph-trash text-lg"></i></button>
+                        <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex flex-wrap gap-2 pr-10">
+                            <span class="bg-slate-800 text-white text-xs font-bold px-2 py-1 rounded">${q.banca} ${q.ano}</span>
+                            <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded">${q.materia}</span>
+                            <span class="bg-slate-200 text-slate-800 text-xs font-bold px-2 py-1 rounded">${q.assunto}</span>
+                            ${badge}
                         </div>
                         <div class="p-6">
                             <p class="text-slate-800 font-medium mb-6 leading-relaxed">${q.enunciado.replace(/\n/g, '<br>')}</p>
@@ -761,129 +716,235 @@
             });
         };
 
-        // --- 7. ADICIONAR E INTELIGÊNCIA ARTIFICIAL ---
+        window.deleteQuestion = (dbId) => {
+            window.openModal("Excluir Questão?", "Tem certeza que deseja apagar esta questão do acervo?", "Excluir", "bg-red-600 hover:bg-red-700", 
+            () => { deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', currentCadernoId, 'questoes', dbId)); },
+            '<i class="ph-duotone ph-trash text-5xl text-red-500"></i>');
+        };
+
+        // --- 6. ADD MANUAL ---
         document.getElementById('add-question-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const btn = this.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Salvando...';
-            const newQ = {
-                id: questions.length > 0 ? Math.max(...questions.map(q => q.id || 0)) + 1 : 1,
-                banca: document.getElementById('input-banca').value, ano: document.getElementById('input-ano').value, tipo: document.getElementById('input-tipo').value,
-                materia: document.getElementById('input-materia').value, assunto: document.getElementById('input-assunto').value, enunciado: document.getElementById('input-enunciado').value,
-                opcoes: [document.getElementById('input-opt-0').value, document.getElementById('input-opt-1').value, document.getElementById('input-opt-2').value, document.getElementById('input-opt-3').value],
-                correta: parseInt(document.getElementById('input-correta').value), explicacao: document.getElementById('input-explicacao').value, historico: null, createdAt: new Date().toISOString()
+            const btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Salvando...';
+            
+            const ops = [
+                document.getElementById('input-opt-0').value, document.getElementById('input-opt-1').value,
+                document.getElementById('input-opt-2').value, document.getElementById('input-opt-3').value,
+                document.getElementById('input-opt-4').value
+            ].filter(Boolean);
+
+            const q = {
+                id: Date.now(), banca: document.getElementById('input-banca').value, ano: document.getElementById('input-ano').value,
+                tipo: document.getElementById('input-tipo').value, materia: document.getElementById('input-materia').value,
+                assunto: document.getElementById('input-assunto').value, enunciado: document.getElementById('input-enunciado').value,
+                opcoes: ops, correta: parseInt(document.getElementById('input-correta').value),
+                explicacao: document.getElementById('input-explicacao').value, historico: null, createdAt: new Date().toISOString()
             };
-            try { await saveQuestionToFirestore(newQ); this.reset(); showToast("Questão salva com sucesso!"); window.switchTab('list'); }
-            catch(e) { console.error(e); showToast("Erro ao salvar.", true); }
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', currentCadernoId, 'questoes', q.id.toString()), q);
+                this.reset(); showToast("Salva na nuvem!"); window.switchTab('list');
+            } catch(e) { console.error(e); showToast("Erro.", true); }
             finally { btn.disabled = false; btn.innerHTML = '<i class="ph ph-cloud-arrow-up text-xl"></i> Salvar na Nuvem'; }
         });
 
+        // --- 7. IA / IMPORT (COM REVISÃO) ---
         window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-        window.handlePDFUpload = async (event, targetTextareaId) => {
+        window.handlePDFUpload = async (event, targetId) => {
             const file = event.target.files[0]; if (!file || file.type !== 'application/pdf') return;
-            const ta = document.getElementById(targetTextareaId); ta.value = ''; ta.placeholder = 'Extraindo texto...'; ta.disabled = true;
+            const texta = document.getElementById(targetId); texta.value = ''; texta.placeholder = 'Extraindo...'; texta.disabled = true;
             try {
-                const pdf = await window.pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise; let text = '';
-                for (let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const content = await page.getTextContent(); text += content.items.map(i => i.str).join(' ') + '\n'; }
-                ta.value = text; showToast(`PDF lido`);
-            } catch (e) { showToast('Erro ao ler PDF.', true); } finally { ta.placeholder = ''; ta.disabled = false; event.target.value = ''; }
+                const pdf = await window.pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+                let t = ''; for(let i=1; i<=pdf.numPages; i++) t += (await (await pdf.getPage(i)).getTextContent()).items.map(i=>i.str).join(' ') + '\n';
+                texta.value = t; showToast(`PDF Lido`);
+            } catch (e) { showToast('Erro no PDF.', true); } finally { texta.placeholder = ''; texta.disabled = false; event.target.value=''; }
+        };
+
+        window.saveApiKey = () => {
+            const key = document.getElementById('gemini-api-key').value;
+            if(key) { localStorage.setItem('gemini_api_key', key); showToast("Chave salva localmente!"); }
         };
 
         window.processarComIA = async () => {
-            const edital = document.getElementById('ai-edital').value, prova = document.getElementById('ai-prova').value, gab = document.getElementById('ai-gabarito').value;
-            if (!prova) return showToast("Cole a prova!", true);
-            const btn = document.getElementById('btn-processar-ia'), msg = document.getElementById('ai-status-msg');
-            btn.disabled = true; btn.classList.add('opacity-75'); btn.innerHTML = '<i class="ph ph-spinner animate-spin text-2xl"></i> Processando...'; msg.classList.remove('hidden');
+            const edital = document.getElementById('ai-edital').value;
+            const prova = document.getElementById('ai-prova').value;
+            const gabarito = document.getElementById('ai-gabarito').value;
+            const apiKey = document.getElementById('gemini-api-key').value || localStorage.getItem('gemini_api_key');
 
-            const apiKey = "";
+            if (!prova) return showToast("Cole o texto da prova!", true);
+            if (!apiKey) return showToast("Insira a chave da API do Gemini acima!", true);
+
+            const btn = document.getElementById('btn-processar-ia');
+            const statusMsg = document.getElementById('ai-status-msg');
+            btn.disabled = true; btn.classList.add('opacity-75'); btn.innerHTML = '<i class="ph ph-spinner animate-spin text-2xl"></i> Processando...';
+            statusMsg.classList.remove('hidden');
+
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             const payload = {
-                contents: [{ parts: [{ text: `EDITAL:\n${edital}\nPROVA:\n${prova}\nGABARITO:\n${gab}` }] }],
-                systemInstruction: { parts: [{ text: "Extraia questoes. Mapeie matéria e assunto do edital. Indice correta 0-4. Gere explicacao." }] },
+                contents: [{ parts: [{ text: `EDITAL:\n${edital}\nPROVA:\n${prova}\nGABARITO:\n${gabarito}` }] }],
+                systemInstruction: { parts: [{ text: "Extraia questoes. Formato JSON Array estrito. Mapeie matéria/assunto. Identifique correta (0 a 4). Gere explicacao. Responda APENAS com o JSON Array." }] },
                 generationConfig: { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "OBJECT", properties: { banca: { type: "STRING" }, ano: { type: "STRING" }, tipo: { type: "STRING" }, materia: { type: "STRING" }, assunto: { type: "STRING" }, enunciado: { type: "STRING" }, opcoes: { type: "ARRAY", items: { type: "STRING" } }, correta: { type: "INTEGER" }, explicacao: { type: "STRING" } }, required: ["banca", "ano", "tipo", "materia", "assunto", "enunciado", "opcoes", "correta", "explicacao"] } } }
             };
 
             try {
-                const res = await (await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })).json();
-                const jsonStr = res.candidates?.[0]?.content?.parts?.[0]?.text; if (!jsonStr) throw new Error("Erro API");
-                const novas = JSON.parse(jsonStr); let maxId = questions.length > 0 ? Math.max(...questions.map(q => q.id || 0)) : 0;
-                for (const q of novas) { maxId++; q.id = maxId; q.historico = null; q.createdAt = new Date().toISOString(); await saveQuestionToFirestore(q); }
-                showToast(`${novas.length} questões salvas!`); document.getElementById('ai-prova').value = ''; document.getElementById('ai-gabarito').value = ''; window.switchTab('list');
-            } catch (e) { showToast("Erro ao processar com IA.", true); } finally { btn.disabled = false; btn.classList.remove('opacity-75'); btn.innerHTML = '<i class="ph-bold ph-magic-wand"></i> Iniciar Análise Inteligente'; msg.classList.add('hidden'); }
-        };
+                const result = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const jsonRes = await result.json();
+                if(jsonRes.error) throw new Error(jsonRes.error.message);
+                
+                let textRes = jsonRes.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!textRes) throw new Error("Sem resposta");
+                
+                // Limpeza robusta do JSON
+                textRes = textRes.replace(/```json/g, '').replace(/```/g, '').trim();
+                const sIdx = textRes.indexOf('['); const eIdx = textRes.lastIndexOf(']');
+                if (sIdx !== -1 && eIdx !== -1) textRes = textRes.substring(sIdx, eIdx + 1);
 
-        // --- 8. SIMULADO E ESTATÍSTICAS ---
-        let quizQs = [], curIdx = 0, usrAns = [];
-        window.startQuiz = () => {
-            if (filteredQuestions.length === 0) return showToast("Filtre questões antes de iniciar!", true);
-            quizQs = [...filteredQuestions].sort(() => Math.random() - 0.5); curIdx = 0; usrAns = new Array(quizQs.length).fill(null);
-            document.getElementById('quiz-setup').classList.add('hidden'); document.getElementById('quiz-results').classList.add('hidden'); document.getElementById('quiz-active').classList.remove('hidden');
-            document.getElementById('quiz-total-num').innerText = quizQs.length; window.renderQuizQ();
-        };
-
-        window.renderQuizQ = () => {
-            const q = quizQs[curIdx]; document.getElementById('quiz-current-num').innerText = curIdx + 1;
-            let optsHtml = q.opcoes.map((opt, i) => {
-                const isSel = usrAns[curIdx] === i;
-                return `<label class="cursor-pointer block"><input type="radio" name="quiz-opt" value="${i}" class="hidden" onchange="window.selQuiz(${i})"><div class="p-4 border-2 rounded-xl mb-3 ${isSel ? 'bg-indigo-50 border-indigo-500 text-indigo-900' : 'bg-white border-slate-200'}"><span class="font-bold mr-3 bg-white w-6 h-6 inline-flex items-center justify-center rounded border ${isSel ? 'border-indigo-500 text-indigo-600' : 'border-slate-300'}">${labels[i]}</span>${opt}</div></label>`;
-            }).join('');
-            document.getElementById('quiz-question-container').innerHTML = `<p class="text-lg text-slate-800 font-medium mb-8">${q.enunciado.replace(/\n/g, '<br>')}</p><div class="options-container">${optsHtml}</div>`;
-            document.getElementById('btn-quiz-prev').classList.toggle('hidden', curIdx === 0);
-            if (curIdx === quizQs.length - 1) { document.getElementById('btn-quiz-next').classList.add('hidden'); document.getElementById('btn-quiz-finish').classList.remove('hidden'); } 
-            else { document.getElementById('btn-quiz-next').classList.remove('hidden'); document.getElementById('btn-quiz-finish').classList.add('hidden'); }
-        };
-
-        window.selQuiz = (i) => { usrAns[curIdx] = i; window.renderQuizQ(); };
-        window.nextQuizQuestion = () => { if (curIdx < quizQs.length - 1) { curIdx++; window.renderQuizQ(); } };
-        window.prevQuizQuestion = () => { if (curIdx > 0) { curIdx--; window.renderQuizQ(); } };
-
-        window.finishQuiz = () => {
-            const check = () => {
-                let score = 0; const proms = [];
-                quizQs.forEach((q, i) => {
-                    if (usrAns[i] === q.correta) { score++; proms.push(updateHistoryInFirestore(q.dbId, 'acertou')); } 
-                    else if (usrAns[i] !== null) { proms.push(updateHistoryInFirestore(q.dbId, 'errou')); }
-                });
-                Promise.all(proms).catch(e => console.error("Erro", e));
-                document.getElementById('quiz-active').classList.add('hidden'); document.getElementById('quiz-results').classList.remove('hidden');
-                document.getElementById('result-score').innerText = score; document.getElementById('result-total').innerText = quizQs.length;
-                setTimeout(() => {
-                    const pb = document.getElementById('result-progress'), perc = (score / quizQs.length) * 100; pb.style.width = perc + '%';
-                    pb.className = perc >= 70 ? "bg-green-500 h-4 rounded-full transition-all duration-1000" : (perc >= 40 ? "bg-yellow-500 h-4 rounded-full transition-all duration-1000" : "bg-red-500 h-4 rounded-full transition-all duration-1000");
-                }, 100);
-                showToast("Simulado finalizado!");
-            };
-            
-            if (usrAns.includes(null)) window.showCustomConfirm("Você tem questões em branco. Deseja finalizar mesmo assim?", check);
-            else check();
-        };
-
-        window.renderStats = () => {
-            let totalAcertos = 0, totalErros = 0, matStats = {};
-            questions.forEach(q => {
-                if(!matStats[q.materia]) matStats[q.materia] = { a: 0, e: 0, t: 0 };
-                if (q.historico === 'acertou') { totalAcertos++; matStats[q.materia].a++; matStats[q.materia].t++; }
-                else if (q.historico === 'errou') { totalErros++; matStats[q.materia].e++; matStats[q.materia].t++; }
-            });
-            
-            document.getElementById('stat-total-resolvidas').innerText = totalAcertos + totalErros;
-            document.getElementById('stat-total-acertos').innerText = totalAcertos;
-            document.getElementById('stat-total-erros').innerText = totalErros;
-
-            const cont = document.getElementById('stats-materias-container'); cont.innerHTML = '';
-            if(Object.keys(matStats).length === 0 || (totalAcertos+totalErros) === 0) return cont.innerHTML = `<p class="text-slate-500 italic">Nenhum dado de desempenho registrado ainda.</p>`;
-            
-            for (const [mat, data] of Object.entries(matStats)) {
-                if (data.t === 0) continue;
-                const p = Math.round((data.a / data.t) * 100);
-                let col = p >= 70 ? 'bg-green-500' : (p >= 40 ? 'bg-yellow-500' : 'bg-red-500');
-                cont.innerHTML += `
-                    <div class="mb-3">
-                        <div class="flex justify-between text-sm mb-1"><span class="font-bold text-slate-700">${mat}</span><span class="text-slate-600">${p}% (${data.a}/${data.t})</span></div>
-                        <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden"><div class="${col} h-2.5 rounded-full" style="width: ${p}%"></div></div>
-                    </div>`;
+                pendingAIQuestions = JSON.parse(textRes);
+                renderAIReviewList();
+                
+            } catch (error) { console.error(error); showToast("Erro na IA: " + error.message, true); }
+            finally {
+                btn.disabled = false; btn.classList.remove('opacity-75'); btn.innerHTML = '<i class="ph-bold ph-robot"></i> Analisar Prova';
+                statusMsg.classList.add('hidden');
             }
         };
 
+        function renderAIReviewList() {
+            document.getElementById('ai-setup-section').classList.add('hidden');
+            document.getElementById('ai-review-section').classList.remove('hidden');
+            const list = document.getElementById('ai-review-list');
+            list.innerHTML = '';
+            
+            document.getElementById('ai-review-count').innerText = pendingAIQuestions.length;
+            document.getElementById('ai-btn-count').innerText = pendingAIQuestions.length;
+
+            if(pendingAIQuestions.length === 0) { list.innerHTML = '<p class="text-center text-slate-500">Nenhuma questão extraída.</p>'; return; }
+
+            pendingAIQuestions.forEach((q, idx) => {
+                let opts = '';
+                q.opcoes.forEach((opt, i) => { if(opt) opts += `<div class="text-xs p-1 ${i===q.correta?'bg-green-100 font-bold':''}">${labels[i]}) ${opt}</div>`; });
+                list.innerHTML += `
+                    <div class="border border-slate-200 p-4 rounded-lg bg-slate-50 relative" id="pending-q-${idx}">
+                        <button onclick="removePendingQ(${idx})" class="absolute top-2 right-2 text-red-500 hover:bg-red-100 p-1 rounded"><i class="ph-fill ph-trash"></i></button>
+                        <div class="flex gap-2 mb-2"><span class="bg-indigo-100 text-indigo-800 text-[10px] px-1 rounded">${q.materia}</span><span class="bg-slate-200 text-[10px] px-1 rounded">${q.assunto}</span></div>
+                        <p class="text-sm font-semibold mb-2 line-clamp-2">${q.enunciado}</p>
+                        <div class="mb-2">${opts}</div>
+                    </div>`;
+            });
+        }
+
+        window.removePendingQ = (idx) => {
+            pendingAIQuestions.splice(idx, 1);
+            renderAIReviewList();
+        };
+
+        window.cancelarRevisaoIA = () => {
+            pendingAIQuestions = [];
+            document.getElementById('ai-review-section').classList.add('hidden');
+            document.getElementById('ai-setup-section').classList.remove('hidden');
+        };
+
+        window.salvarRevisaoIA = async () => {
+            if(pendingAIQuestions.length === 0) return cancelarRevisaoIA();
+            const btn = document.querySelector('#ai-review-section button.bg-indigo-600');
+            btn.disabled = true; btn.innerHTML = 'Salvando...';
+            try {
+                let maxId = Date.now();
+                for (const q of pendingAIQuestions) {
+                    q.id = maxId++; q.historico = null; q.createdAt = new Date().toISOString();
+                    await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', currentCadernoId, 'questoes', q.id.toString()), q);
+                }
+                showToast(`${pendingAIQuestions.length} questões salvas!`);
+                document.getElementById('ai-prova').value = ''; document.getElementById('ai-gabarito').value = '';
+                cancelarRevisaoIA(); window.switchTab('list');
+            } catch (e) { showToast("Erro ao salvar.", true); }
+            finally { btn.disabled = false; btn.innerHTML = '<i class="ph-bold ph-cloud-arrow-up"></i> Salvar no Acervo'; }
+        };
+
+        // --- 8. SIMULADO ---
+        let quizQuestions = []; let currentQuizIndex = 0; let userAnswers = [];
+        window.startQuiz = () => {
+            if (filteredQuestions.length === 0) return showToast("Filtre questões antes!", true);
+            quizQuestions = [...filteredQuestions].sort(() => Math.random() - 0.5);
+            currentQuizIndex = 0; userAnswers = new Array(quizQuestions.length).fill(null);
+            document.getElementById('quiz-setup').classList.add('hidden');
+            document.getElementById('quiz-results').classList.add('hidden');
+            document.getElementById('quiz-active').classList.remove('hidden');
+            document.getElementById('quiz-total-num').innerText = quizQuestions.length;
+            window.renderQuizQuestion();
+        };
+
+        window.renderQuizQuestion = () => {
+            const q = quizQuestions[currentQuizIndex]; document.getElementById('quiz-current-num').innerText = currentQuizIndex + 1;
+            let optionsHtml = '';
+            q.opcoes.forEach((opt, i) => {
+                if(!opt) return; const isSel = userAnswers[currentQuizIndex] === i;
+                optionsHtml += `<label class="cursor-pointer block"><input type="radio" name="quiz-option" value="${i}" class="hidden" onchange="window.selectQuizOption(${i})"><div class="p-4 border-2 rounded-xl mb-3 ${isSel ? 'bg-indigo-50 border-indigo-500 text-indigo-900' : 'bg-white border-slate-200'}"><span class="font-bold mr-3 bg-white w-6 h-6 inline-flex items-center justify-center rounded border ${isSel ? 'border-indigo-500 text-indigo-600' : 'border-slate-300'}">${labels[i]}</span>${opt}</div></label>`;
+            });
+            document.getElementById('quiz-question-container').innerHTML = `<p class="text-lg text-slate-800 font-medium mb-8">${q.enunciado.replace(/\n/g, '<br>')}</p><div class="options-container">${optionsHtml}</div>`;
+            document.getElementById('btn-quiz-prev').classList.toggle('hidden', currentQuizIndex === 0);
+            if (currentQuizIndex === quizQuestions.length - 1) { document.getElementById('btn-quiz-next').classList.add('hidden'); document.getElementById('btn-quiz-finish').classList.remove('hidden'); } 
+            else { document.getElementById('btn-quiz-next').classList.remove('hidden'); document.getElementById('btn-quiz-finish').classList.add('hidden'); }
+        };
+
+        window.selectQuizOption = (index) => { userAnswers[currentQuizIndex] = index; window.renderQuizQuestion(); };
+        window.nextQuizQuestion = () => { if (currentQuizIndex < quizQuestions.length - 1) { currentQuizIndex++; window.renderQuizQuestion(); } };
+        window.prevQuizQuestion = () => { if (currentQuizIndex > 0) { currentQuizIndex--; window.renderQuizQuestion(); } };
+
+        window.requestFinishQuiz = () => {
+            if (userAnswers.filter(a => a === null).length > 0) {
+                window.openModal("Questões em Branco", "Você deixou questões sem resposta. Deseja finalizar mesmo assim?", "Sim, Finalizar", "bg-indigo-600", window.executeFinishQuiz);
+            } else { window.executeFinishQuiz(); }
+        };
+
+        window.executeFinishQuiz = async () => {
+            let score = 0; const updatePromises = [];
+            quizQuestions.forEach((q, idx) => {
+                let h = null;
+                if (userAnswers[idx] === q.correta) { score++; h = 'acertou'; } else if (userAnswers[idx] !== null) { h = 'errou'; }
+                if(h) updatePromises.push(updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', currentCadernoId, 'questoes', q.dbId), { historico: h }));
+            });
+            Promise.all(updatePromises).catch(e => console.error(e));
+
+            document.getElementById('quiz-active').classList.add('hidden');
+            document.getElementById('quiz-results').classList.remove('hidden');
+            document.getElementById('result-score').innerText = score;
+            document.getElementById('result-total').innerText = quizQuestions.length;
+            setTimeout(() => {
+                const pb = document.getElementById('result-progress'); const p = (score / quizQuestions.length) * 100;
+                pb.style.width = p + '%'; pb.className = p >= 70 ? "bg-green-500 h-4 rounded-full transition-all duration-1000" : (p >= 40 ? "bg-yellow-500 h-4 rounded-full transition-all duration-1000" : "bg-red-500 h-4 rounded-full transition-all duration-1000");
+            }, 100);
+            showToast("Simulado finalizado!");
+        };
+
+        // --- 9. ESTATÍSTICAS ---
+        function updateStats() {
+            if(!document.getElementById('tab-stats').classList.contains('active')) return;
+            let acertos = 0, erros = 0, materias = {};
+            questions.forEach(q => {
+                if(q.historico === 'acertou') acertos++; if(q.historico === 'errou') erros++;
+                if(q.materia) {
+                    if(!materias[q.materia]) materias[q.materia] = {a:0, e:0};
+                    if(q.historico === 'acertou') materias[q.materia].a++;
+                    if(q.historico === 'errou') materias[q.materia].e++;
+                }
+            });
+            document.getElementById('stat-acertos').innerText = acertos; document.getElementById('stat-erros').innerText = erros;
+
+            if(chartGeralInstance) chartGeralInstance.destroy();
+            chartGeralInstance = new Chart(document.getElementById('chartGeral'), {
+                type: 'doughnut', data: { labels: ['Acertos', 'Erros'], datasets: [{ data: [acertos, erros], backgroundColor: ['#22c55e', '#ef4444'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            const matLabels = Object.keys(materias);
+            const matA = matLabels.map(m => materias[m].a); const matE = matLabels.map(m => materias[m].e);
+            if(chartMateriasInstance) chartMateriasInstance.destroy();
+            chartMateriasInstance = new Chart(document.getElementById('chartMaterias'), {
+                type: 'bar', data: { labels: matLabels, datasets: [{ label: 'Acertos', data: matA, backgroundColor: '#22c55e' }, { label: 'Erros', data: matE, backgroundColor: '#ef4444' }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
+            });
+        }
     </script>
 </body>
 </html>

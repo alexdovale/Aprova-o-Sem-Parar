@@ -448,8 +448,13 @@
         
         // ⚠️ COLOQUE SUA CHAVE GEMINI AQUI ⚠️
         // PEGUE EM: https://aistudio.google.com/apikey
-        const GEMINI_API_KEY = "SAQ.Ab8RN6LpuOwsJkjYe7OJOoODWA2b-VgEaujKsAKGWQmCOmkg-w"; // <-- SUBSTITUA AQUI
+        // EXEMPLO: "AIzaSyABC123DEF456GHI789JKL"
+        const GEMINI_API_KEY = "AQ.Ab8RN6LpuOwsJkjYe7OJOoODWA2b-VgEaujKsAKGWQmCOmkg-w"; // <-- SUBSTITUA AQUI
         const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
+
+        console.log("🚀 Inicializando sistema...");
+        console.log("💜 DeepSeek:", DEEPSEEK_API_KEY ? "Configurado" : "❌");
+        console.log("💚 Gemini:", GEMINI_API_KEY && GEMINI_API_KEY !== "SUA_CHAVE_GEMINI_AQUI" ? "Configurado" : "❌");
 
         // ============================================
         // FUNÇÃO COM DUAL API + FALLBACK INTELIGENTE
@@ -593,7 +598,10 @@
             const prova = document.getElementById('ai-prova').value;
             const gabarito = document.getElementById('ai-gabarito').value;
 
-            if (!prova) return showToast("Cole o texto da prova!", true);
+            if (!prova) {
+                showToast("Cole o texto da prova!", true);
+                return;
+            }
 
             const btn = document.getElementById('btn-processar-ia');
             const statusMsg = document.getElementById('ai-status-msg');
@@ -623,13 +631,14 @@ INSTRUÇÕES IMPORTANTES:
    - materia: assunto principal da questão
    - assunto: tópico específico
    - enunciado: texto completo da questão
-   - opcoes: array com as alternativas
+   - opcoes: array com as alternativas (mínimo 2, máximo 5)
    - correta: índice (0-4) da alternativa correta
    - explicacao: uma breve explicação da resposta
 
 3. Se a questão for "Certo/Errado", use opções: ["Certo", "Errado"]
+4. IMPORTANTE: Retorne APENAS o JSON, sem texto adicional
 
-FORMATO: Retorne APENAS um JSON Array válido.
+FORMATO EXATO:
 [
   {
     "banca": "CESPE",
@@ -637,28 +646,50 @@ FORMATO: Retorne APENAS um JSON Array válido.
     "tipo": "Múltipla Escolha",
     "materia": "Direito Constitucional",
     "assunto": "Direitos Fundamentais",
-    "enunciado": "Texto...",
-    "opcoes": ["A) opção 1", "B) opção 2", ...],
+    "enunciado": "Texto completo da questão...",
+    "opcoes": ["A) opção 1", "B) opção 2", "C) opção 3", "D) opção 4", "E) opção 5"],
     "correta": 2,
-    "explicacao": "Explicação..."
+    "explicacao": "Explicação da resposta correta..."
   }
 ]`;
 
                 const result = await window.chamarIA(prompt, 
-                    "Você é um especialista em extração de questões de concursos. Retorne APENAS JSON válido.");
+                    "Você é um especialista em extração de questões de concursos. Retorne APENAS JSON válido. Não adicione texto antes ou depois do JSON.");
 
                 let textRes = result.resposta;
                 let modeloUsado = result.modelo;
 
                 // Limpar e parsear o JSON
                 textRes = textRes.replace(/```json/g, '').replace(/```/g, '').trim();
-                const sIdx = textRes.indexOf('[');
-                const eIdx = textRes.lastIndexOf(']');
-                if (sIdx !== -1 && eIdx !== -1) textRes = textRes.substring(sIdx, eIdx + 1);
+                
+                // Tentar encontrar o JSON
+                let sIdx = textRes.indexOf('[');
+                let eIdx = textRes.lastIndexOf(']');
+                
+                if (sIdx !== -1 && eIdx !== -1) {
+                    textRes = textRes.substring(sIdx, eIdx + 1);
+                }
 
-                const questoes = JSON.parse(textRes);
+                // Tentar parsear
+                let questoes;
+                try {
+                    questoes = JSON.parse(textRes);
+                } catch (e) {
+                    console.error("JSON inválido:", textRes);
+                    throw new Error("A IA retornou um JSON inválido. Tente novamente com um texto mais curto.");
+                }
+
                 if (!Array.isArray(questoes) || questoes.length === 0) {
                     throw new Error("Nenhuma questão válida encontrada.");
+                }
+
+                // Validar cada questão
+                questoes = questoes.filter(q => {
+                    return q.enunciado && q.opcoes && q.opcoes.length >= 2;
+                });
+
+                if (questoes.length === 0) {
+                    throw new Error("Nenhuma questão com dados completos foi encontrada.");
                 }
 
                 pendingAIQuestions = questoes;
@@ -666,8 +697,8 @@ FORMATO: Retorne APENAS um JSON Array válido.
                 showToast(`${pendingAIQuestions.length} questões extraídas via ${modeloUsado}!`);
 
             } catch (error) {
-                console.error(error);
-                showToast(error.message || "Erro ao processar com IA.", true);
+                console.error("Erro:", error);
+                showToast(error.message || "Erro ao processar com IA. Tente novamente.", true);
             } finally {
                 btn.disabled = false;
                 btn.classList.remove('opacity-75');
@@ -1319,9 +1350,8 @@ FORMATO: Retorne APENAS um JSON Array válido.
             });
         }
 
-        console.log("🚀 Sistema com IA Dual (DeepSeek + Gemini)!");
-        console.log("💜 DeepSeek:", DEEPSEEK_API_KEY ? "Configurado" : "❌");
-        console.log("💚 Gemini:", GEMINI_API_KEY && GEMINI_API_KEY !== "SUA_CHAVE_GEMINI_AQUI" ? "Configurado" : "❌ (pegue em https://aistudio.google.com/apikey)");
+        console.log("🚀 Sistema pronto! Só falta configurar a chave do Gemini.");
+        console.log("💚 Gemini:", GEMINI_API_KEY && GEMINI_API_KEY !== "SUA_CHAVE_GEMINI_AQUI" ? "✅ Configurado" : "❌ Configure em: https://aistudio.google.com/apikey");
     </script>
 </body>
 </html>

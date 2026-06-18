@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -238,46 +237,37 @@
                 
                 <!-- SEÇÃO 1: FORMULÁRIO IA -->
                 <div id="ai-setup-section" class="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200 border-t-4 border-t-purple-600">
-                    <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3">
                             <i class="ph-duotone ph-magic-wand text-4xl text-purple-600"></i>
-                            <h2 class="text-2xl font-bold text-slate-800">Extração Inteligente</h2>
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800">Extração Inteligente</h2>
+                                <p class="text-slate-500 text-sm">Cole os arquivos para extração automática das questões.</p>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Configuração da Chave API -->
-                    <div class="bg-purple-50 border border-purple-200 p-4 rounded-lg mb-6">
-                        <label class="block text-sm font-bold text-purple-900 mb-1 flex items-center gap-2">
-                            <i class="ph-fill ph-key"></i> Chave API do Google Gemini
-                        </label>
-                        <p class="text-xs text-purple-700 mb-3">Para usar a IA, insira sua chave do Google AI Studio. Ela fica salva apenas no seu navegador.</p>
-                        <div class="flex gap-2">
-                            <input type="password" id="gemini-api-key" placeholder="Cole sua chave API aqui..." class="flex-grow px-3 py-2 border border-purple-300 rounded focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                            <button onclick="saveApiKey()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm font-bold shadow-sm">Salvar Chave</button>
-                        </div>
-                    </div>
-
                     <div class="space-y-6">
                         <div>
                             <div class="flex justify-between items-end mb-1">
                                 <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-book-open-text text-purple-500"></i> 1. Edital / Assuntos</label>
                                 <label class="cursor-pointer text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded border border-purple-200 hover:bg-purple-100 flex items-center gap-1 font-semibold"><i class="ph-bold ph-upload-simple"></i> PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-edital')"></label>
                             </div>
-                            <textarea id="ai-edital" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50"></textarea>
+                            <textarea id="ai-edital" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50" placeholder="Cole aqui os tópicos do edital..."></textarea>
                         </div>
                         <div>
                             <div class="flex justify-between items-end mb-1">
                                 <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-file-text text-purple-500"></i> 2. Texto da Prova</label>
                                 <label class="cursor-pointer text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded border border-purple-200 hover:bg-purple-100 flex items-center gap-1 font-semibold"><i class="ph-bold ph-upload-simple"></i> PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-prova')"></label>
                             </div>
-                            <textarea id="ai-prova" rows="4" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50"></textarea>
+                            <textarea id="ai-prova" rows="4" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50" placeholder="Cole o texto ou faça upload do PDF da prova..."></textarea>
                         </div>
                         <div>
                             <div class="flex justify-between items-end mb-1">
                                 <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-check-square text-purple-500"></i> 3. Gabarito</label>
                                 <label class="cursor-pointer text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded border border-purple-200 hover:bg-purple-100 flex items-center gap-1 font-semibold"><i class="ph-bold ph-upload-simple"></i> PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-gabarito')"></label>
                             </div>
-                            <textarea id="ai-gabarito" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50"></textarea>
+                            <textarea id="ai-gabarito" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50" placeholder="Gabarito para correção automática..."></textarea>
                         </div>
                         <div class="pt-4 border-t border-slate-200">
                             <button id="btn-processar-ia" onclick="window.processarComIA()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-4 rounded-xl flex justify-center items-center gap-2 text-lg shadow-md"><i class="ph-bold ph-robot"></i> Analisar Prova</button>
@@ -318,7 +308,7 @@
                     </div>
                     <button onclick="window.startQuiz()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-105 shadow-lg">Iniciar Simulado Agora</button>
                 </div>
-                <!-- Tela do Simulado Ativo e Resultados (mantidos igual) -->
+                
                 <div id="quiz-active" class="hidden">
                     <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
                         <span class="font-bold text-slate-700">Questão <span id="quiz-current-num">1</span> de <span id="quiz-total-num">X</span></span>
@@ -332,6 +322,7 @@
                         <button id="btn-quiz-finish" onclick="window.requestFinishQuiz()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors hidden">Finalizar Simulado</button>
                     </div>
                 </div>
+
                 <div id="quiz-results" class="hidden bg-white rounded-xl shadow-sm p-8 text-center border border-slate-200">
                     <div id="result-icon" class="mb-4"></div>
                     <h2 class="text-3xl font-bold text-slate-800 mb-2">Desempenho no Simulado</h2>
@@ -600,11 +591,6 @@
             document.getElementById('main-app').classList.remove('hidden');
             document.getElementById('main-app').classList.add('flex');
             document.getElementById('app-caderno-title').innerText = nome;
-            
-            // Carrega a chave API salva localmente
-            const savedKey = localStorage.getItem('gemini_api_key');
-            if(savedKey) document.getElementById('gemini-api-key').value = savedKey;
-
             loadQuestionsForCaderno();
             window.switchTab('list');
         };
@@ -760,19 +746,16 @@
             } catch (e) { showToast('Erro no PDF.', true); } finally { texta.placeholder = ''; texta.disabled = false; event.target.value=''; }
         };
 
-        window.saveApiKey = () => {
-            const key = document.getElementById('gemini-api-key').value;
-            if(key) { localStorage.setItem('gemini_api_key', key); showToast("Chave salva localmente!"); }
-        };
-
         window.processarComIA = async () => {
             const edital = document.getElementById('ai-edital').value;
             const prova = document.getElementById('ai-prova').value;
             const gabarito = document.getElementById('ai-gabarito').value;
-            const apiKey = document.getElementById('gemini-api-key').value || localStorage.getItem('gemini_api_key');
-
+            
+            // --- Chave API embutida no código ---
+            const apiKey = "AQ.Ab8RN6ITiKlpxmYE4aTCrYlvG8cfc3EBo1FHTf5nmwXR-8niCw"; 
+            
             if (!prova) return showToast("Cole o texto da prova!", true);
-            if (!apiKey) return showToast("Insira a chave da API do Gemini acima!", true);
+            if (apiKey === "COLOQUE_SUA_CHAVE_GEMINI_AQUI") return showToast("Desenvolvedor: Configure sua chave Gemini no código!", true);
 
             const btn = document.getElementById('btn-processar-ia');
             const statusMsg = document.getElementById('ai-status-msg');
@@ -794,7 +777,6 @@
                 let textRes = jsonRes.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (!textRes) throw new Error("Sem resposta");
                 
-                // Limpeza robusta do JSON
                 textRes = textRes.replace(/```json/g, '').replace(/```/g, '').trim();
                 const sIdx = textRes.indexOf('['); const eIdx = textRes.lastIndexOf(']');
                 if (sIdx !== -1 && eIdx !== -1) textRes = textRes.substring(sIdx, eIdx + 1);

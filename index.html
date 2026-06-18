@@ -258,6 +258,18 @@
                         </div>
                     </div>
                     
+                    <!-- Adicionado Input para Chave API Opcional do Usuário -->
+                    <div class="bg-slate-50 border border-slate-200 p-4 rounded-lg mb-6">
+                        <label class="block text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
+                            <i class="ph-fill ph-key text-amber-500"></i> Chave da API do Google Gemini
+                        </label>
+                        <p class="text-xs text-slate-500 mb-3">Para sua segurança, insira sua chave válida aqui. Ela ficará invisível e salva no seu navegador.</p>
+                        <div class="flex gap-2">
+                            <input type="password" id="gemini-api-key" placeholder="Deve começar com AIzaSy ou AQ..." class="flex-grow px-3 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-purple-500 outline-none text-sm">
+                            <button onclick="saveApiKey()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded text-sm font-bold shadow-sm">Salvar Localmente</button>
+                        </div>
+                    </div>
+
                     <div class="space-y-6">
                         <div>
                             <div class="flex justify-between items-end mb-1">
@@ -590,6 +602,17 @@
 1. Verifique as configurações das suas chaves de API.
 2. Ou adicione créditos no DeepSeek`,
                             modelo: "Erro"
+                        };
+                    }
+                }
+                
+                return { 
+                    resposta: `❌ **Erro no DeepSeek:** ${error.message}`,
+                    modelo: "Erro"
+                };
+            }
+        };
+
         window.saveApiKey = () => {
             const key = document.getElementById('gemini-api-key').value.trim();
             if(!key) return showToast("Digite uma chave API.", true);

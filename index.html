@@ -3,10 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aprovação Sem Parar - Dual AI</title>
+    <title>Aprovação Sem Parar</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- Chart.js para Estatísticas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
@@ -14,47 +18,30 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 50; display: flex; flex-direction: column; gap: 10px; }
         .toast { min-width: 250px; padding: 16px; border-radius: 8px; color: white; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); animation: slideIn 0.3s ease-out forwards; display: flex; align-items: center; gap: 12px; }
-        .toast.success { background-color: #4F46E5; }
-        .toast.error { background-color: #EF4444; }
-        .toast.warning { background-color: #F59E0B; }
+        .toast.success { background-color: #4F46E5; } /* Indigo 600 */
+        .toast.error { background-color: #EF4444; } /* Red 500 */
+        .toast.warning { background-color: #F59E0B; } /* Amber 500 */
         .toast.fade-out { animation: slideOut 0.3s ease-in forwards; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4F46E5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Modal Style */
         .modal-overlay { background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); }
-        .chat-message { margin-bottom: 12px; animation: fadeIn 0.3s ease; }
-        .chat-message.user { text-align: right; }
-        .chat-message.ai { text-align: left; }
-        .chat-bubble { display: inline-block; padding: 10px 16px; border-radius: 12px; max-width: 80%; word-wrap: break-word; }
-        .chat-bubble.user { background: #4F46E5; color: white; }
-        .chat-bubble.ai { background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0; }
-        .chat-bubble.gemini { background: #e8f5e9; color: #1e293b; border: 1px solid #a5d6a7; }
-        .chat-bubble.deepseek { background: #f3e5f5; color: #1e293b; border: 1px solid #ce93d8; }
-        .chat-bubble.erro { background: #fee2e2; color: #1e293b; border: 1px solid #fecaca; }
-        .typing-indicator { display: inline-block; background: #f1f5f9; padding: 12px 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .typing-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; margin: 0 2px; animation: typing 1.4s infinite both; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes typing { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.5; } }
-        .ai-badge { font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: bold; display: inline-block; margin-left: 8px; }
-        .ai-badge.deepseek { background: #ce93d8; color: white; }
-        .ai-badge.gemini { background: #66bb6a; color: white; }
-        .ai-badge.erro { background: #ef4444; color: white; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
 
     <div id="toast-container"></div>
 
-    <!-- LOADING -->
+    <!-- TELA DE LOADING INICIAL -->
     <div id="loading-screen" class="fixed inset-0 bg-slate-100 z-50 flex flex-col items-center justify-center">
         <img src="https://raw.githubusercontent.com/alexdovale/Aprova-o-Sem-Parar/main/Logo/logo.png" alt="Aprovação Sem Parar" class="h-24 object-contain animate-pulse mb-6">
         <div class="loader mb-4"></div>
         <p class="text-slate-600 font-semibold">Conectando ao Banco de Dados...</p>
     </div>
 
-    <!-- LOGIN -->
+    <!-- TELA DE LOGIN / CADASTRO -->
     <div id="auth-screen" class="hidden flex-grow flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full border border-slate-200">
             <div class="text-center mb-8">
@@ -63,6 +50,7 @@
                 <p class="text-slate-500 mt-1">Acesse sua plataforma de estudos</p>
             </div>
 
+            <!-- Botão Google -->
             <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-3 shadow-sm mb-6">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
                 Continuar com o Google
@@ -75,6 +63,7 @@
             </div>
 
             <form id="auth-form" class="space-y-4">
+                <!-- Campos de Cadastro (Ocultos no Login) -->
                 <div id="register-fields" class="hidden space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -122,7 +111,7 @@
         </div>
     </div>
 
-    <!-- HOME -->
+    <!-- PAINEL DE CADERNOS (HOME) -->
     <div id="home-screen" class="hidden flex-grow flex-col">
         <header class="bg-indigo-800 text-white shadow-md py-4">
             <div class="max-w-5xl mx-auto px-4 flex items-center justify-between">
@@ -142,11 +131,13 @@
                 </button>
             </div>
 
-            <div id="cadernos-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+            <div id="cadernos-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <!-- Cadernos carregados aqui -->
+            </div>
         </main>
     </div>
 
-    <!-- MAIN APP -->
+    <!-- APLICATIVO PRINCIPAL (Dentro de um Caderno) -->
     <div id="main-app" class="hidden flex-col min-h-screen">
         <header class="bg-indigo-700 text-white shadow-md">
             <div class="max-w-5xl mx-auto px-4 py-4">
@@ -165,8 +156,8 @@
                 <nav class="flex gap-2 bg-indigo-800 p-1 rounded-lg overflow-x-auto max-w-full">
                     <button onclick="switchTab('list')" id="btn-list" class="nav-btn active whitespace-nowrap px-4 py-2 rounded-md bg-white text-indigo-700 font-semibold transition-colors flex items-center gap-2 text-sm"><i class="ph ph-books"></i> Acervo</button>
                     <button onclick="switchTab('add')" id="btn-add" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm"><i class="ph ph-plus-circle"></i> Nova Questão</button>
-                    <button onclick="switchTab('import')" id="btn-import" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm bg-purple-600 hover:bg-purple-700 border border-purple-400"><i class="ph ph-magic-wand"></i> Importar / IA</button>
-                    <button onclick="switchTab('chat')" id="btn-chat" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm"><i class="ph ph-robot"></i> Chat IA</button>
+                    <!-- Trocamos o nome para refletir a nova ação segura -->
+                    <button onclick="switchTab('import')" id="btn-import" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm bg-purple-600 hover:bg-purple-700 border border-purple-400"><i class="ph ph-lightning"></i> Importação Rápida</button>
                     <button onclick="switchTab('quiz')" id="btn-quiz" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm"><i class="ph ph-exam"></i> Simulado</button>
                     <button onclick="switchTab('stats')" id="btn-stats" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm"><i class="ph ph-chart-pie-slice"></i> Estatísticas</button>
                 </nav>
@@ -241,60 +232,54 @@
                 </div>
             </div>
 
-            <!-- ABA 3: Importar com IA Dual -->
+            <!-- ABA 3: Importação Rápida (SISTEMA SEGURO E À PROVA DE FALHAS) -->
             <div id="tab-import" class="tab-content max-w-4xl mx-auto">
                 <div class="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200 border-t-4 border-t-purple-600">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3">
-                            <i class="ph-duotone ph-magic-wand text-4xl text-purple-600"></i>
+                            <i class="ph-duotone ph-lightning text-4xl text-purple-600"></i>
                             <div>
-                                <h2 class="text-2xl font-bold text-slate-800">Extração com IA Dual</h2>
-                                <p class="text-slate-500 text-sm">DeepSeek (pago) + Gemini (fallback grátis)</p>
+                                <h2 class="text-2xl font-bold text-slate-800">Importação em Lote (Segura)</h2>
+                                <p class="text-slate-500 text-sm">Use o DeepSeek ou ChatGPT para formatar a prova de forma 100% gratuita e cole o resultado aqui.</p>
                             </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <span class="bg-purple-100 text-purple-800 text-xs px-3 py-1 rounded-full font-bold">DeepSeek</span>
-                            <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold">Gemini</span>
                         </div>
                     </div>
                     
-                    <!-- Adicionado Input para Chave API Opcional do Usuário -->
-                    <div class="bg-slate-50 border border-slate-200 p-4 rounded-lg mb-6">
-                        <label class="block text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
-                            <i class="ph-fill ph-key text-amber-500"></i> Chave da API do Google Gemini
-                        </label>
-                        <p class="text-xs text-slate-500 mb-3">Para sua segurança, insira sua chave válida aqui. Ela ficará invisível e salva no seu navegador.</p>
-                        <div class="flex gap-2">
-                            <input type="password" id="gemini-api-key" placeholder="Deve começar com AIzaSy ou AQ..." class="flex-grow px-3 py-2 border border-slate-300 rounded focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                            <button onclick="saveApiKey()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded text-sm font-bold shadow-sm">Salvar Localmente</button>
-                        </div>
-                    </div>
-
                     <div class="space-y-6">
-                        <div>
-                            <div class="flex justify-between items-end mb-1">
-                                <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-book-open-text text-purple-500"></i> 1. Edital / Assuntos</label>
-                                <label class="cursor-pointer text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded border border-purple-200 hover:bg-purple-100 flex items-center gap-1 font-semibold"><i class="ph-bold ph-upload-simple"></i> PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-edital')"></label>
+                        <!-- Passo 1: Copiar Prompt -->
+                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-lg">
+                            <h3 class="font-bold text-slate-800 mb-2 flex items-center gap-2"><i class="ph-fill ph-number-circle-one text-purple-600 text-xl"></i> Peça para a IA formatar a prova</h3>
+                            <p class="text-sm text-slate-600 mb-3">Copie o texto abaixo e cole no seu ChatGPT, Claude ou DeepSeek junto com o PDF ou texto da sua prova.</p>
+                            <div class="relative">
+                                <pre id="ai-prompt-helper" class="bg-slate-800 text-slate-300 p-4 rounded text-xs overflow-x-auto whitespace-pre-wrap">Aja como um gerador de JSON para um sistema de estudos. Extraia as questões do material que vou enviar em anexo e me retorne APENAS um JSON Array nesse exato formato, sem nenhuma explicação adicional ou saudação. Formato exigido:
+
+[
+  {
+    "banca": "Nome da Banca",
+    "ano": "Ano",
+    "tipo": "Múltipla Escolha ou Certo/Errado",
+    "materia": "Materia do concurso",
+    "assunto": "Assunto da questão",
+    "enunciado": "Texto da questão...",
+    "opcoes": ["A) Opção 1", "B) Opção 2", "C) Opção 3", "D) Opção 4", "E) Opção 5"],
+    "correta": 0,
+    "explicacao": "Explicação detalhada..."
+  }
+]
+
+Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, etc). Avalie o gabarito. Se não tiver gabarito, responda com a opção correta fundamentada. Aqui está o conteúdo da prova:</pre>
+                                <button onclick="copiarPromptHelper()" class="absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1 shadow-sm"><i class="ph-bold ph-copy"></i> Copiar Prompt</button>
                             </div>
-                            <textarea id="ai-edital" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50" placeholder="Cole aqui os tópicos do edital..."></textarea>
                         </div>
+
+                        <!-- Passo 2: Colar Resultado -->
                         <div>
-                            <div class="flex justify-between items-end mb-1">
-                                <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-file-text text-purple-500"></i> 2. Texto da Prova</label>
-                                <label class="cursor-pointer text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded border border-purple-200 hover:bg-purple-100 flex items-center gap-1 font-semibold"><i class="ph-bold ph-upload-simple"></i> PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-prova')"></label>
-                            </div>
-                            <textarea id="ai-prova" rows="4" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50" placeholder="Cole o texto ou faça upload do PDF da prova..."></textarea>
+                            <h3 class="font-bold text-slate-800 mb-2 flex items-center gap-2"><i class="ph-fill ph-number-circle-two text-purple-600 text-xl"></i> Cole o resultado da IA aqui</h3>
+                            <textarea id="ai-json-input" rows="8" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50 font-mono" placeholder="Cole o JSON ou o bloco de código que a IA gerou aqui..."></textarea>
                         </div>
-                        <div>
-                            <div class="flex justify-between items-end mb-1">
-                                <label class="block text-sm font-semibold text-slate-700 flex items-center gap-2"><i class="ph-fill ph-check-square text-purple-500"></i> 3. Gabarito</label>
-                                <label class="cursor-pointer text-xs bg-purple-50 text-purple-700 px-3 py-1.5 rounded border border-purple-200 hover:bg-purple-100 flex items-center gap-1 font-semibold"><i class="ph-bold ph-upload-simple"></i> PDF<input type="file" accept=".pdf" class="hidden" onchange="window.handlePDFUpload(event, 'ai-gabarito')"></label>
-                            </div>
-                            <textarea id="ai-gabarito" rows="2" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50" placeholder="Gabarito para correção automática..."></textarea>
-                        </div>
-                        <div class="pt-4 border-t border-slate-200">
-                            <button id="btn-processar-ia" onclick="window.processarComIA()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-4 rounded-xl flex justify-center items-center gap-2 text-lg shadow-md"><i class="ph-bold ph-robot"></i> Analisar com IA (DeepSeek + Gemini)</button>
-                            <p id="ai-status-msg" class="text-center text-sm text-purple-600 font-semibold mt-3 hidden animate-pulse">Processando com IA...</p>
+                        
+                        <div class="pt-2 border-t border-slate-200">
+                            <button id="btn-processar-ia" onclick="window.processarJSONImportado()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-4 rounded-xl flex justify-center items-center gap-2 text-lg shadow-md transition-transform transform hover:scale-[1.01]"><i class="ph-bold ph-check-square"></i> Validar e Importar Questões</button>
                         </div>
                     </div>
                 </div>
@@ -305,7 +290,7 @@
                         <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2"><i class="ph-fill ph-eye text-blue-500"></i> Revisão das Questões</h2>
                         <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">Encontradas: <span id="ai-review-count">0</span></span>
                     </div>
-                    <p class="text-slate-600 mb-6 text-sm">Verifique se a IA extraiu corretamente. Você pode excluir as que ficaram com defeito antes de salvar.</p>
+                    <p class="text-slate-600 mb-6 text-sm">Verifique se as questões foram identificadas corretamente. Você pode excluir as que ficaram com defeito antes de salvar.</p>
                     
                     <div id="ai-review-list" class="space-y-4 mb-8 max-h-[60vh] overflow-y-auto p-2"></div>
 
@@ -318,58 +303,7 @@
                 </div>
             </div>
 
-            <!-- ABA 4: Chat com IA Dual -->
-            <div id="tab-chat" class="tab-content max-w-3xl mx-auto">
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
-                    <div class="flex items-center gap-3 mb-6">
-                        <i class="ph-duotone ph-robot text-4xl text-indigo-600"></i>
-                        <div>
-                            <h2 class="text-2xl font-bold text-slate-800">Chat com IA Dual</h2>
-                            <p class="text-slate-500 text-sm">DeepSeek (pago) com fallback para Gemini (grátis)</p>
-                        </div>
-                        <div class="ml-auto flex gap-2">
-                            <span class="bg-purple-100 text-purple-800 text-xs px-3 py-1 rounded-full font-bold">DeepSeek</span>
-                            <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold">Gemini</span>
-                        </div>
-                    </div>
-                    
-                    <div id="chat-messages" class="h-96 overflow-y-auto border border-slate-200 rounded-lg p-4 mb-4 bg-slate-50">
-                        <div class="chat-message ai">
-                            <div class="chat-bubble ai">
-                                Olá! Sou o assistente com IA Dual. Uso DeepSeek (principal) e Gemini (fallback). 
-                                Tire suas dúvidas sobre concursos, matérias ou peça ajuda com questões!
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex gap-2">
-                        <input type="text" id="chat-input" placeholder="Digite sua pergunta..." 
-                               class="flex-1 px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none"
-                               onkeypress="if(event.key === 'Enter') enviarChatIA()">
-                        <button onclick="enviarChatIA()" 
-                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center gap-2">
-                            <i class="ph-bold ph-paper-plane"></i> Enviar
-                        </button>
-                        <button onclick="limparChat()" 
-                                class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-4 rounded-lg transition-colors">
-                            <i class="ph-bold ph-trash"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="mt-4 flex gap-2 flex-wrap">
-                        <button onclick="chatSugestao('Quais são as melhores técnicas de estudo para concursos?')" 
-                                class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full border border-slate-200 transition-colors">Técnicas de estudo</button>
-                        <button onclick="chatSugestao('Como interpretar melhor textos em provas de concurso?')" 
-                                class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full border border-slate-200 transition-colors">Interpretação de textos</button>
-                        <button onclick="chatSugestao('Explique o princípio da legalidade no Direito Administrativo')" 
-                                class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full border border-slate-200 transition-colors">Direito Administrativo</button>
-                        <button onclick="chatSugestao('Me ajude a resolver uma questão de Raciocínio Lógico')" 
-                                class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full border border-slate-200 transition-colors">Raciocínio Lógico</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ABA 5: Simulado -->
+            <!-- ABA 4: Simulado -->
             <div id="tab-quiz" class="tab-content max-w-3xl mx-auto">
                 <div id="quiz-setup" class="bg-white rounded-xl shadow-sm p-8 text-center border border-slate-200">
                     <i class="ph-duotone ph-exam text-6xl text-indigo-600 mb-4 inline-block"></i>
@@ -404,7 +338,7 @@
                 </div>
             </div>
 
-            <!-- ABA 6: Estatísticas -->
+            <!-- ABA 5: Estatísticas -->
             <div id="tab-stats" class="tab-content">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
@@ -452,366 +386,7 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ============================================
-        // ✅ CONFIGURAÇÃO DAS APIs
-        // ============================================
-        const DEEPSEEK_API_KEY = "sk-ce5f9ee319cc4fdf8f79565181b92c47";
-        const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
-        
-        // 🚨 COLOQUE SUA NOVA CHAVE AQUI (Tem que começar com AIzaSy)
-        const GEMINI_API_KEY = "AQ.Ab8RN6Iu5PDlgiPe-pYLvr4KAmAD6Sdvwpf2kY3Z_3JOYaPCrw"; 
-        
-        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
-
-        // VALIDAÇÃO DA CHAVE (Trava de segurança ativada contra chaves AQ.)
-        const isGeminiKeyValid = GEMINI_API_KEY && 
-                                 (GEMINI_API_KEY.startsWith("AIzaSy") || GEMINI_API_KEY.startsWith("AQ.")) && 
-                                 GEMINI_API_KEY.length > 30;
-
-        console.log("🚀 Inicializando sistema...");
-        console.log("💜 DeepSeek:", DEEPSEEK_API_KEY ? "✅ Configurado" : "❌");
-        console.log("💚 Gemini:", isGeminiKeyValid ? "✅ Configurado" : "❌ Chave inválida ou não configurada");
-
-        // ============================================
-        // FUNÇÃO COM DUAL API
-        // ============================================
-        window.chamarIA = async (mensagem, sistema = "Você é um assistente especializado em concursos públicos.") => {
-            let modeloUsado = "DeepSeek";
-            let ultimoErro = "";
-            
-            // TENTA DEEPSEEK PRIMEIRO
-            try {
-                console.log("🟣 Tentando DeepSeek...");
-                const response = await fetch(DEEPSEEK_API_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
-                    },
-                    body: JSON.stringify({
-                        model: "deepseek-chat",
-                        messages: [
-                            { role: "system", content: sistema },
-                            { role: "user", content: mensagem }
-                        ],
-                        temperature: 0.3,
-                        max_tokens: 4000
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    const erroMsg = data.error?.message || "Erro desconhecido";
-                    console.warn("⚠️ DeepSeek falhou:", erroMsg);
-                    
-                    if (erroMsg.includes("Insufficient Balance") || erroMsg.includes("insufficient")) {
-                        throw new Error("FALLBACK_TO_GEMINI");
-                    }
-                    throw new Error(erroMsg);
-                }
-
-                console.log("✅ DeepSeek OK");
-                return { resposta: data.choices[0].message.content, modelo: "DeepSeek" };
-
-            } catch (error) {
-                ultimoErro = error.message;
-                
-                // FALLBACK PARA GEMINI
-                if (error.message === "FALLBACK_TO_GEMINI" || error.message.includes("Insufficient Balance")) {
-                    try {
-                        if (!isGeminiKeyValid) {
-                            throw new Error("GEMINI_KEY_NOT_CONFIGURED");
-                        }
-
-                        console.log("🟢 Tentando Gemini...");
-                        showToast("DeepSeek sem saldo. Usando Gemini (grátis)!", true);
-
-                        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                contents: [{ 
-                                    parts: [{ 
-                                        text: `${sistema}\n\n${mensagem}` 
-                                    }] 
-                                }],
-                                generationConfig: { 
-                                    temperature: 0.3, 
-                                    maxOutputTokens: 4000
-                                }
-                            })
-                        });
-
-                        if (!response.ok) {
-                            const erro = await response.json();
-                            console.error("❌ Gemini erro:", erro);
-                            
-                            if (erro.error?.message?.includes("authentication") || erro.error?.code === 401) {
-                                throw new Error("GEMINI_AUTH_ERROR");
-                            }
-                            throw new Error(erro.error?.message || "Erro na API Gemini");
-                        }
-
-                        const data = await response.json();
-                        const texto = data.candidates[0].content.parts[0].text;
-                        
-                        console.log("✅ Gemini OK");
-                        return { resposta: texto, modelo: "Gemini" };
-
-                    } catch (geminiError) {
-                        console.error("❌ Gemini também falhou:", geminiError);
-                        
-                        if (geminiError.message === "GEMINI_AUTH_ERROR") {
-                            return { 
-                                resposta: `⚠️ **Erro de autenticação no Gemini.**
-
-**Sua chave está sendo recusada pelo Google.**
-
-**Solução Exata:**
-1. Acesse https://aistudio.google.com/app/apikey
-2. Clique em "Create API key".
-3. Cole esta nova chave no código no lugar da antiga.
-
-**Erro:** ${geminiError.message}`,
-                                modelo: "Erro"
-                            };
-                        }
-                        
-                        if (geminiError.message === "GEMINI_KEY_NOT_CONFIGURED") {
-                            return { 
-                                resposta: `⚠️ **Chave do Gemini Inválida ou Não Configurada!**
-
-**Você precisa usar uma chave padrão do Google.**
-
-**Para configurar:**
-1. Acesse https://aistudio.google.com/app/apikey
-2. Crie uma chave (Escolha "Create API key in a new project").
-3. Cole no código: \`GEMINI_API_KEY = "SUA_CHAVE_AQUI"\``,
-                                modelo: "Erro"
-                            };
-                        }
-                        
-                        return { 
-                            resposta: `❌ **Ambas as APIs falharam.**
-
-**DeepSeek:** Sem saldo
-**Gemini:** ${geminiError.message}
-
-**Soluções:**
-1. Verifique as configurações das suas chaves de API.
-2. Ou adicione créditos no DeepSeek`,
-                            modelo: "Erro"
-                        };
-                    }
-                }
-                
-                return { 
-                    resposta: `❌ **Erro no DeepSeek:** ${error.message}`,
-                    modelo: "Erro"
-                };
-            }
-        };
-
-        window.saveApiKey = () => {
-            const key = document.getElementById('gemini-api-key').value.trim();
-            if(!key) return showToast("Digite uma chave API.", true);
-            if(!key.startsWith('AIzaSy') && !key.startsWith('AQ.')) return showToast("Formato inválido. Chaves do Google começam com AIzaSy ou AQ...", true);
-            localStorage.setItem('gemini_api_key_v2', key);
-            showToast("Chave salva com segurança no seu navegador!");
-        };
-
-        window.processarComIA = async () => {
-            const edital = document.getElementById('ai-edital').value;
-            const prova = document.getElementById('ai-prova').value;
-            const gabarito = document.getElementById('ai-gabarito').value;
-
-            if (!prova) {
-                showToast("Cole o texto da prova!", true);
-                return;
-            }
-
-            // Resgata a chave validada do input ou do localStorage (ou usa a padrão do código)
-            let apiKey = document.getElementById('gemini-api-key').value.trim() || localStorage.getItem('gemini_api_key_v2') || GEMINI_API_KEY;
-            
-            if (!apiKey) return showToast("Insira a sua chave API do Google Gemini acima.", true);
-            if (!apiKey.startsWith('AIzaSy') && !apiKey.startsWith('AQ.')) return showToast("Sua chave da API é inválida. Ela deve começar com AIzaSy ou AQ...", true);
-
-            const btn = document.getElementById('btn-processar-ia');
-            const statusMsg = document.getElementById('ai-status-msg');
-            btn.disabled = true;
-            btn.classList.add('opacity-75');
-            btn.innerHTML = '<i class="ph ph-spinner animate-spin text-2xl"></i> Processando...';
-            statusMsg.classList.remove('hidden');
-
-            try {
-                let provaTruncada = prova;
-                if (prova.length > 8000) {
-                    provaTruncada = prova.substring(0, 8000) + "... [texto truncado]";
-                    showToast("Texto grande, analisando as primeiras 8000 caracteres...", true);
-                }
-
-                const prompt = `EXTRAIA AS QUESTÕES DO TEXTO DA PROVA ABAIXO.
-
-EDITAL: ${edital || "Não fornecido"}
-
-TEXTO DA PROVA:
-${provaTruncada}
-
-GABARITO:
-${gabarito || "Não fornecido"}
-
-INSTRUÇÕES:
-1. Identifique CADA questão no texto
-2. Para cada questão, extraia:
-   - banca, ano, tipo, materia, assunto, enunciado, opcoes (array), correta (índice 0-4), explicacao
-3. Se for "Certo/Errado", use opções: ["Certo", "Errado"]
-4. Retorne APENAS o JSON Array, sem texto adicional
-
-EXEMPLO:
-[{"banca":"CESPE","ano":"2024","tipo":"Múltipla Escolha","materia":"Direito","assunto":"Constitucional","enunciado":"Texto...","opcoes":["A) opção 1","B) opção 2"],"correta":0,"explicacao":"Explicação..."}]`;
-
-                const result = await window.chamarIA(prompt, 
-                    "Você é um especialista em extração de questões. Retorne APENAS JSON válido.");
-
-                let textRes = result.resposta;
-                let modeloUsado = result.modelo;
-
-                if (result.modelo === "Erro") {
-                    throw new Error(textRes);
-                }
-
-                // Limpeza do JSON
-                textRes = textRes.replace(/```json/g, '').replace(/```/g, '').trim();
-                
-                const match = textRes.match(/\[[\s\S]*\]/);
-                if (match) {
-                    textRes = match[0];
-                }
-
-                let questoes;
-                try {
-                    questoes = JSON.parse(textRes);
-                } catch (e) {
-                    textRes = textRes.replace(/,\s*]/g, ']');
-                    textRes = textRes.replace(/,\s*}/g, '}');
-                    try {
-                        questoes = JSON.parse(textRes);
-                    } catch (e2) {
-                        console.error("JSON final:", textRes);
-                        throw new Error("A IA retornou um JSON inválido. Tente com um texto mais curto.");
-                    }
-                }
-
-                if (!Array.isArray(questoes) || questoes.length === 0) {
-                    throw new Error("Nenhuma questão válida encontrada.");
-                }
-
-                questoes = questoes.filter(q => {
-                    return q.enunciado && q.enunciado.length > 10 && 
-                           q.opcoes && Array.isArray(q.opcoes) && q.opcoes.length >= 2;
-                });
-
-                if (questoes.length === 0) {
-                    throw new Error("Nenhuma questão com dados completos foi encontrada.");
-                }
-
-                pendingAIQuestions = questoes;
-                renderAIReviewList();
-                showToast(`${pendingAIQuestions.length} questões extraídas via ${modeloUsado}!`);
-
-            } catch (error) {
-                console.error("Erro:", error);
-                showToast(error.message || "Erro ao processar com IA. Tente novamente.", true);
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('opacity-75');
-                btn.innerHTML = '<i class="ph-bold ph-robot"></i> Analisar com IA (DeepSeek + Gemini)';
-                statusMsg.classList.add('hidden');
-            }
-        };
-
-        // ============================================
-        // FUNÇÃO DO CHAT COM IA DUAL
-        // ============================================
-        window.enviarChatIA = async () => {
-            if (isChatLoading) return;
-            
-            const input = document.getElementById('chat-input');
-            const mensagem = input.value.trim();
-            if (!mensagem) return;
-
-            const container = document.getElementById('chat-messages');
-            
-            container.innerHTML += `
-                <div class="chat-message user">
-                    <div class="chat-bubble user">${mensagem}</div>
-                </div>
-            `;
-            input.value = '';
-            container.scrollTop = container.scrollHeight;
-
-            const typingId = Date.now();
-            container.innerHTML += `
-                <div id="typing-${typingId}" class="chat-message ai">
-                    <div class="typing-indicator">
-                        <span class="typing-dot"></span>
-                        <span class="typing-dot"></span>
-                        <span class="typing-dot"></span>
-                    </div>
-                </div>
-            `;
-            container.scrollTop = container.scrollHeight;
-            isChatLoading = true;
-
-            try {
-                const result = await window.chamarIA(mensagem, 
-                    "Você é um especialista em concursos públicos. Responda de forma clara, objetiva e didática.");
-                
-                document.getElementById(`typing-${typingId}`)?.remove();
-                
-                const respostaFormatada = result.resposta.replace(/\n/g, '<br>');
-                const badgeClass = result.modelo === "DeepSeek" ? "deepseek" : (result.modelo === "Gemini" ? "gemini" : "erro");
-                
-                container.innerHTML += `
-                    <div class="chat-message ai">
-                        <div class="chat-bubble ${badgeClass}">
-                            ${respostaFormatada}
-                            ${result.modelo !== "Erro" ? `<span class="ai-badge ${badgeClass}">${result.modelo}</span>` : ''}
-                        </div>
-                    </div>
-                `;
-            } catch (error) {
-                document.getElementById(`typing-${typingId}`)?.remove();
-                container.innerHTML += `
-                    <div class="chat-message ai">
-                        <div class="chat-bubble erro">
-                            ❌ Erro: ${error.message}
-                        </div>
-                    </div>
-                `;
-            } finally {
-                isChatLoading = false;
-                container.scrollTop = container.scrollHeight;
-            }
-        };
-
-        window.chatSugestao = (texto) => {
-            document.getElementById('chat-input').value = texto;
-            enviarChatIA();
-        };
-
-        window.limparChat = () => {
-            const container = document.getElementById('chat-messages');
-            container.innerHTML = `
-                <div class="chat-message ai">
-                    <div class="chat-bubble ai">
-                        Olá! Sou o assistente com IA Dual. Uso DeepSeek (principal) e Gemini (fallback). 
-                        Tire suas dúvidas sobre concursos, matérias ou peça ajuda com questões!
-                    </div>
-                </div>
-            `;
-        };
+        console.log("🚀 Inicializando sistema sem APIs externas problemáticas...");
 
         // ============================================
         // CONFIGURAÇÃO FIREBASE
@@ -847,7 +422,6 @@ EXEMPLO:
         let chartGeralInstance = null;
         let chartMateriasInstance = null;
         let pendingAIQuestions = [];
-        let isChatLoading = false;
         const labels = ['A', 'B', 'C', 'D', 'E'];
 
         // ============================================
@@ -1049,7 +623,7 @@ EXEMPLO:
         };
 
         // ============================================
-        // QUESTÕES
+        // QUESTÕES (LISTA E FILTROS)
         // ============================================
         function loadQuestionsForCaderno() {
             if (!currentUser || !currentCadernoId) return;
@@ -1065,7 +639,7 @@ EXEMPLO:
         window.switchTab = (tabId) => {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => {
-                if(el.id === 'btn-import' || el.id === 'btn-chat') {
+                if(el.id === 'btn-import') {
                     el.className = "nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm bg-purple-600 hover:bg-purple-700 border border-purple-400";
                 } else {
                     el.className = "nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm";
@@ -1074,7 +648,7 @@ EXEMPLO:
 
             document.getElementById(`tab-${tabId}`).classList.add('active');
             const btn = document.getElementById(`btn-${tabId}`);
-            if(tabId === 'import' || tabId === 'chat') {
+            if(tabId === 'import') {
                 btn.classList.add('ring-2', 'ring-white');
             } else {
                 btn.classList.remove('text-white', 'hover:bg-indigo-600');
@@ -1190,25 +764,65 @@ EXEMPLO:
         });
 
         // ============================================
-        // PDF UPLOAD
+        // IMPORTAÇÃO MANUAL SEGURA (COPY & PASTE JSON)
         // ============================================
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-        
-        window.handlePDFUpload = async (event, targetId) => {
-            const file = event.target.files[0]; if (!file || file.type !== 'application/pdf') return;
-            const texta = document.getElementById(targetId); texta.value = ''; texta.placeholder = 'Extraindo...'; texta.disabled = true;
-            try {
-                const pdf = await window.pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
-                let t = ''; for(let i=1; i<=pdf.numPages; i++) t += (await (await pdf.getPage(i)).getTextContent()).items.map(i=>i.str).join(' ') + '\n';
-                texta.value = t; showToast(`PDF Lido`);
-            } catch (e) { showToast('Erro no PDF.', true); } finally { texta.placeholder = ''; texta.disabled = false; event.target.value=''; }
+        window.copiarPromptHelper = () => {
+            const texto = document.getElementById('ai-prompt-helper').innerText;
+            navigator.clipboard.writeText(texto).then(() => showToast("Prompt copiado! Cole na sua IA favorita."));
         };
 
-        // ============================================
-        // REVISÃO DA IA
-        // ============================================
+        window.processarJSONImportado = () => {
+            const rawInput = document.getElementById('ai-json-input').value;
+            if (!rawInput.trim()) return showToast("Cole o texto gerado pela IA antes de prosseguir.", true);
+
+            const btn = document.getElementById('btn-processar-ia');
+            btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Processando...';
+
+            try {
+                let textRes = rawInput;
+                // Tenta limpar marcações de código markdown se vierem junto
+                textRes = textRes.replace(/```json/gi, '').replace(/```/g, '').trim();
+                
+                // Tenta extrair apenas o array, caso a IA tenha conversado no início/fim
+                const match = textRes.match(/\[[\s\S]*\]/);
+                if (match) textRes = match[0];
+
+                let questoes;
+                try {
+                    questoes = JSON.parse(textRes);
+                } catch (e) {
+                    // Limpeza básica se o JSON estiver sujo
+                    textRes = textRes.replace(/,\s*]/g, ']');
+                    textRes = textRes.replace(/,\s*}/g, '}');
+                    questoes = JSON.parse(textRes);
+                }
+
+                if (!Array.isArray(questoes) || questoes.length === 0) {
+                    throw new Error("O texto colado não contém questões no formato correto.");
+                }
+
+                questoes = questoes.filter(q => {
+                    return q.enunciado && q.enunciado.length > 5 && 
+                           q.opcoes && Array.isArray(q.opcoes);
+                });
+
+                if (questoes.length === 0) throw new Error("As questões foram encontradas, mas faltam dados obrigatórios (como enunciado ou opções).");
+
+                pendingAIQuestions = questoes;
+                renderAIReviewList();
+                showToast(`${pendingAIQuestions.length} questões identificadas com sucesso!`);
+
+            } catch (error) {
+                console.error("Erro no Parse:", error);
+                showToast("Falha ao ler as questões. Verifique se o formato colado é o JSON correto.", true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph-bold ph-check-square"></i> Validar e Importar Questões';
+            }
+        };
+
         function renderAIReviewList() {
-            const setupSection = document.getElementById('ai-setup-section');
+            const setupSection = document.querySelector('#tab-import > div:first-child');
             if (setupSection) setupSection.classList.add('hidden');
             document.getElementById('ai-review-section').classList.remove('hidden');
             const list = document.getElementById('ai-review-list');
@@ -1221,11 +835,11 @@ EXEMPLO:
 
             pendingAIQuestions.forEach((q, idx) => {
                 let opts = '';
-                q.opcoes.forEach((opt, i) => { if(opt) opts += `<div class="text-xs p-1 ${i===q.correta?'bg-green-100 font-bold':''}">${labels[i]}) ${opt}</div>`; });
+                q.opcoes.forEach((opt, i) => { if(opt) opts += `<div class="text-xs p-1 ${i===parseInt(q.correta)?'bg-green-100 font-bold':''}">${labels[i] || '-'}) ${opt}</div>`; });
                 list.innerHTML += `
                     <div class="border border-slate-200 p-4 rounded-lg bg-slate-50 relative" id="pending-q-${idx}">
                         <button onclick="removePendingQ(${idx})" class="absolute top-2 right-2 text-red-500 hover:bg-red-100 p-1 rounded"><i class="ph-fill ph-trash"></i></button>
-                        <div class="flex gap-2 mb-2"><span class="bg-indigo-100 text-indigo-800 text-[10px] px-1 rounded">${q.materia || 'Sem matéria'}</span><span class="bg-slate-200 text-[10px] px-1 rounded">${q.assunto || 'Sem assunto'}</span></div>
+                        <div class="flex gap-2 mb-2"><span class="bg-indigo-100 text-indigo-800 text-[10px] px-1 rounded">${q.materia || 'Diversos'}</span><span class="bg-slate-200 text-[10px] px-1 rounded">${q.assunto || 'Diversos'}</span></div>
                         <p class="text-sm font-semibold mb-2 line-clamp-2">${q.enunciado || 'Sem enunciado'}</p>
                         <div class="mb-2">${opts}</div>
                     </div>`;
@@ -1240,7 +854,7 @@ EXEMPLO:
         window.cancelarRevisaoIA = () => {
             pendingAIQuestions = [];
             document.getElementById('ai-review-section').classList.add('hidden');
-            const setupSection = document.getElementById('ai-setup-section');
+            const setupSection = document.querySelector('#tab-import > div:first-child');
             if (setupSection) setupSection.classList.remove('hidden');
         };
 
@@ -1255,11 +869,18 @@ EXEMPLO:
                     q.historico = null; 
                     q.createdAt = new Date().toISOString();
                     if (!Array.isArray(q.opcoes)) q.opcoes = [];
+                    // Fallbacks caso a IA tenha esquecido algo
+                    q.banca = q.banca || "Desconhecida";
+                    q.ano = q.ano || new Date().getFullYear();
+                    q.tipo = q.tipo || "Múltipla Escolha";
+                    q.materia = q.materia || "Geral";
+                    q.assunto = q.assunto || "Diversos";
+                    q.correta = isNaN(parseInt(q.correta)) ? 0 : parseInt(q.correta);
+                    
                     await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', currentCadernoId, 'questoes', q.id.toString()), q);
                 }
                 showToast(`${pendingAIQuestions.length} questões salvas!`);
-                document.getElementById('ai-prova').value = ''; 
-                document.getElementById('ai-gabarito').value = '';
+                document.getElementById('ai-json-input').value = ''; 
                 cancelarRevisaoIA(); 
                 window.switchTab('list');
             } catch (e) { 
@@ -1321,7 +942,7 @@ EXEMPLO:
             let score = 0; const updatePromises = [];
             quizQuestions.forEach((q, idx) => {
                 let h = null;
-                if (userAnswers[idx] === q.correta) { score++; h = 'acertou'; } 
+                if (userAnswers[idx] === parseInt(q.correta)) { score++; h = 'acertou'; } 
                 else if (userAnswers[idx] !== null) { h = 'errou'; }
                 if(h) updatePromises.push(updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', currentCadernoId, 'questoes', q.dbId), { historico: h }));
             });
@@ -1374,7 +995,7 @@ EXEMPLO:
             });
         }
 
-        console.log("🚀 Sistema pronto!");
+        console.log("🚀 Sistema Pronto e Operando de Forma Segura!");
     </script>
 </body>
 </html>

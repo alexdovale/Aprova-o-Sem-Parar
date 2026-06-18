@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aprovação Sem Parar - Dual AI</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
@@ -27,8 +23,6 @@
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4F46E5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .modal-overlay { background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); }
-        
-        /* Chat Styles */
         .chat-message { margin-bottom: 12px; animation: fadeIn 0.3s ease; }
         .chat-message.user { text-align: right; }
         .chat-message.ai { text-align: left; }
@@ -37,15 +31,16 @@
         .chat-bubble.ai { background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0; }
         .chat-bubble.gemini { background: #e8f5e9; color: #1e293b; border: 1px solid #a5d6a7; }
         .chat-bubble.deepseek { background: #f3e5f5; color: #1e293b; border: 1px solid #ce93d8; }
+        .chat-bubble.erro { background: #fee2e2; color: #1e293b; border: 1px solid #fecaca; }
         .typing-indicator { display: inline-block; background: #f1f5f9; padding: 12px 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
         .typing-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; margin: 0 2px; animation: typing 1.4s infinite both; }
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes typing { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.5; } }
-        
         .ai-badge { font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: bold; display: inline-block; margin-left: 8px; }
         .ai-badge.deepseek { background: #ce93d8; color: white; }
         .ai-badge.gemini { background: #66bb6a; color: white; }
+        .ai-badge.erro { background: #ef4444; color: white; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
@@ -59,7 +54,7 @@
         <p class="text-slate-600 font-semibold">Conectando ao Banco de Dados...</p>
     </div>
 
-    <!-- TELA DE LOGIN -->
+    <!-- LOGIN -->
     <div id="auth-screen" class="hidden flex-grow flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full border border-slate-200">
             <div class="text-center mb-8">
@@ -433,7 +428,7 @@
             <h3 id="modal-title" class="text-xl font-bold text-center text-slate-800 mb-2">Título</h3>
             <p id="modal-desc" class="text-slate-600 text-center mb-6">Descrição</p>
             <div class="flex gap-3">
-                <button onclick="closeModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-4 rounded-lg transition-colors">Cancelar</button>
+                <button onclick="closeModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-lg transition-colors">Cancelar</button>
                 <button id="modal-confirm-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Confirmar</button>
             </div>
         </div>
@@ -446,20 +441,22 @@
         import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ============================================
-        // CONFIGURAÇÃO DAS APIs (DEEPSEEK + GEMINI)
+        // CONFIGURAÇÃO DAS APIs
         // ============================================
         const DEEPSEEK_API_KEY = "sk-ce5f9ee319cc4fdf8f79565181b92c47";
         const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
         
-        // PEGUE SUA CHAVE GEMINI EM: https://aistudio.google.com/apikey
-        const GEMINI_API_KEY = "AQ.Ab8RN6LpuOwsJkjYe7OJOoODWA2b-VgEaujKsAKGWQmCOmkg-wp"; // COLOQUE SUA CHAVE AQUI
+        // ⚠️ COLOQUE SUA CHAVE GEMINI AQUI ⚠️
+        // PEGUE EM: https://aistudio.google.com/apikey
+        const GEMINI_API_KEY = "SAQ.Ab8RN6LpuOwsJkjYe7OJOoODWA2b-VgEaujKsAKGWQmCOmkg-w"; // <-- SUBSTITUA AQUI
         const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
 
         // ============================================
-        // FUNÇÃO COM DUAL API (DeepSeek + Gemini Fallback)
+        // FUNÇÃO COM DUAL API + FALLBACK INTELIGENTE
         // ============================================
         window.chamarIA = async (mensagem, sistema = "Você é um assistente especializado em concursos públicos.") => {
             let modeloUsado = "DeepSeek";
+            let ultimoErro = "";
             
             // TENTA DEEPSEEK PRIMEIRO
             try {
@@ -487,30 +484,39 @@
                     const erroMsg = data.error?.message || "Erro desconhecido";
                     console.warn("⚠️ DeepSeek falhou:", erroMsg);
                     
-                    // SE FOR ERRO DE SALDO, USA GEMINI
                     if (erroMsg.includes("Insufficient Balance") || erroMsg.includes("insufficient")) {
                         throw new Error("FALLBACK_TO_GEMINI");
                     }
                     throw new Error(erroMsg);
                 }
 
-                modeloUsado = "DeepSeek";
                 console.log("✅ DeepSeek OK");
-                return { resposta: data.choices[0].message.content, modelo: modeloUsado };
+                return { resposta: data.choices[0].message.content, modelo: "DeepSeek" };
 
             } catch (error) {
+                ultimoErro = error.message;
+                
                 // FALLBACK PARA GEMINI
                 if (error.message === "FALLBACK_TO_GEMINI" || error.message.includes("Insufficient Balance")) {
                     try {
-                        console.log("🟢 Usando Gemini (fallback)...");
+                        console.log("🟢 Tentando Gemini...");
+                        
+                        // VERIFICA SE A CHAVE DO GEMINI É VÁLIDA
+                        if (!GEMINI_API_KEY || GEMINI_API_KEY === "SUA_CHAVE_GEMINI_AQUI") {
+                            throw new Error("GEMINI_KEY_NOT_CONFIGURED");
+                        }
+
                         showToast("DeepSeek sem saldo. Usando Gemini (grátis)!", true);
-                        modeloUsado = "Gemini";
 
                         const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
-                                contents: [{ parts: [{ text: `${sistema}\n\n${mensagem}` }] }],
+                                contents: [{ 
+                                    parts: [{ 
+                                        text: `${sistema}\n\n${mensagem}` 
+                                    }] 
+                                }],
                                 generationConfig: { 
                                     temperature: 0.3, 
                                     maxOutputTokens: 4000
@@ -520,6 +526,11 @@
 
                         if (!response.ok) {
                             const erro = await response.json();
+                            console.error("❌ Gemini erro:", erro);
+                            
+                            if (erro.error?.message?.includes("authentication") || erro.error?.code === 401) {
+                                throw new Error("GEMINI_AUTH_ERROR");
+                            }
                             throw new Error(erro.error?.message || "Erro na API Gemini");
                         }
 
@@ -527,14 +538,50 @@
                         const texto = data.candidates[0].content.parts[0].text;
                         
                         console.log("✅ Gemini OK");
-                        return { resposta: texto, modelo: modeloUsado };
+                        return { resposta: texto, modelo: "Gemini" };
 
                     } catch (geminiError) {
                         console.error("❌ Gemini também falhou:", geminiError);
-                        throw new Error(`Ambas as APIs falharam. DeepSeek: sem saldo. Gemini: ${geminiError.message}`);
+                        
+                        if (geminiError.message === "GEMINI_AUTH_ERROR" || 
+                            geminiError.message === "GEMINI_KEY_NOT_CONFIGURED") {
+                            return { 
+                                resposta: `⚠️ **Ops! O Gemini não está configurado corretamente.**
+
+**Para configurar:**
+1. Acesse https://aistudio.google.com/apikey
+2. Crie uma nova chave de API
+3. Cole no código: \`GEMINI_API_KEY = "SUA_CHAVE_AQUI"\`
+
+**Enquanto isso, você pode:**
+• Usar o DeepSeek (precisa de créditos)
+• Cadastrar questões manualmente
+• Continuar estudando com suas questões existentes
+
+**Erro técnico:** ${geminiError.message}`,
+                                modelo: "Erro"
+                            };
+                        }
+                        
+                        return { 
+                            resposta: `❌ **Ambas as APIs falharam.**
+
+**DeepSeek:** ${ultimoErro.includes("Insufficient Balance") ? "Sem saldo" : ultimoErro}
+**Gemini:** ${geminiError.message}
+
+**Soluções:**
+1. Adicione créditos no DeepSeek: https://platform.deepseek.com/billing
+2. Configure a chave do Gemini corretamente
+3. Tente novamente mais tarde`,
+                            modelo: "Erro"
+                        };
                     }
                 }
-                throw error;
+                
+                return { 
+                    resposta: `❌ **Erro no DeepSeek:** ${error.message}`,
+                    modelo: "Erro"
+                };
             }
         };
 
@@ -641,7 +688,6 @@ FORMATO: Retorne APENAS um JSON Array válido.
 
             const container = document.getElementById('chat-messages');
             
-            // Adicionar mensagem do usuário
             container.innerHTML += `
                 <div class="chat-message user">
                     <div class="chat-bubble user">${mensagem}</div>
@@ -650,7 +696,6 @@ FORMATO: Retorne APENAS um JSON Array válido.
             input.value = '';
             container.scrollTop = container.scrollHeight;
 
-            // Indicador de digitação
             const typingId = Date.now();
             container.innerHTML += `
                 <div id="typing-${typingId}" class="chat-message ai">
@@ -671,13 +716,13 @@ FORMATO: Retorne APENAS um JSON Array válido.
                 document.getElementById(`typing-${typingId}`)?.remove();
                 
                 const respostaFormatada = result.resposta.replace(/\n/g, '<br>');
-                const badgeClass = result.modelo === "DeepSeek" ? "deepseek" : "gemini";
+                const badgeClass = result.modelo === "DeepSeek" ? "deepseek" : (result.modelo === "Gemini" ? "gemini" : "erro");
                 
                 container.innerHTML += `
                     <div class="chat-message ai">
                         <div class="chat-bubble ${badgeClass}">
                             ${respostaFormatada}
-                            <span class="ai-badge ${badgeClass}">${result.modelo}</span>
+                            ${result.modelo !== "Erro" ? `<span class="ai-badge ${badgeClass}">${result.modelo}</span>` : ''}
                         </div>
                     </div>
                 `;
@@ -685,7 +730,7 @@ FORMATO: Retorne APENAS um JSON Array válido.
                 document.getElementById(`typing-${typingId}`)?.remove();
                 container.innerHTML += `
                     <div class="chat-message ai">
-                        <div class="chat-bubble" style="background: #fee2e2; border-color: #fecaca; color: #dc2626;">
+                        <div class="chat-bubble erro">
                             ❌ Erro: ${error.message}
                         </div>
                     </div>
@@ -1276,7 +1321,7 @@ FORMATO: Retorne APENAS um JSON Array válido.
 
         console.log("🚀 Sistema com IA Dual (DeepSeek + Gemini)!");
         console.log("💜 DeepSeek:", DEEPSEEK_API_KEY ? "Configurado" : "❌");
-        console.log("💚 Gemini:", GEMINI_API_KEY ? "Configurado" : "❌ (pegue em https://aistudio.google.com/apikey)");
+        console.log("💚 Gemini:", GEMINI_API_KEY && GEMINI_API_KEY !== "SUA_CHAVE_GEMINI_AQUI" ? "Configurado" : "❌ (pegue em https://aistudio.google.com/apikey)");
     </script>
 </body>
 </html>

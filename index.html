@@ -459,13 +459,13 @@
         const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
         
         // 🚨 COLOQUE SUA NOVA CHAVE AQUI (Tem que começar com AIzaSy)
-        const GEMINI_API_KEY = "AIzaSyAWYcCfZ8P_vVlbLPSvpupsyLYT6GNF1Mg"; 
+        const GEMINI_API_KEY = "AQ.Ab8RN6Iu5PDlgiPe-pYLvr4KAmAD6Sdvwpf2kY3Z_3JOYaPCrw"; 
         
         const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
         // VALIDAÇÃO DA CHAVE (Trava de segurança ativada contra chaves AQ.)
         const isGeminiKeyValid = GEMINI_API_KEY && 
-                                 GEMINI_API_KEY.startsWith("AIzaSy") && 
+                                 (GEMINI_API_KEY.startsWith("AIzaSy") || GEMINI_API_KEY.startsWith("AQ.")) && 
                                  GEMINI_API_KEY.length > 30;
 
         console.log("🚀 Inicializando sistema...");
@@ -571,7 +571,7 @@
 **Solução Exata:**
 1. Acesse https://aistudio.google.com/app/apikey
 2. Clique em "Create API key".
-3. Cole esta nova chave no código no lugar da antiga. (Lembre-se: ela PRECISA começar com AIzaSy).
+3. Cole esta nova chave no código no lugar da antiga.
 
 **Erro:** ${geminiError.message}`,
                                 modelo: "Erro"
@@ -586,7 +586,7 @@
 
 **Para configurar:**
 1. Acesse https://aistudio.google.com/app/apikey
-2. Crie uma chave (Escolha "Create API key in a new project" para gerar uma chave AIzaSy).
+2. Crie uma chave (Escolha "Create API key in a new project").
 3. Cole no código: \`GEMINI_API_KEY = "SUA_CHAVE_AQUI"\``,
                                 modelo: "Erro"
                             };
@@ -616,7 +616,7 @@
         window.saveApiKey = () => {
             const key = document.getElementById('gemini-api-key').value.trim();
             if(!key) return showToast("Digite uma chave API.", true);
-            if(!key.startsWith('AIzaSy')) return showToast("Formato inválido. Chaves do Google começam com AIzaSy...", true);
+            if(!key.startsWith('AIzaSy') && !key.startsWith('AQ.')) return showToast("Formato inválido. Chaves do Google começam com AIzaSy ou AQ...", true);
             localStorage.setItem('gemini_api_key_v2', key);
             showToast("Chave salva com segurança no seu navegador!");
         };
@@ -635,7 +635,7 @@
             let apiKey = document.getElementById('gemini-api-key').value.trim() || localStorage.getItem('gemini_api_key_v2') || GEMINI_API_KEY;
             
             if (!apiKey) return showToast("Insira a sua chave API do Google Gemini acima.", true);
-            if (!apiKey.startsWith('AIzaSy')) return showToast("Sua chave da API é inválida. Ela deve começar com AIzaSy...", true);
+            if (!apiKey.startsWith('AIzaSy') && !apiKey.startsWith('AQ.')) return showToast("Sua chave da API é inválida. Ela deve começar com AIzaSy ou AQ...", true);
 
             const btn = document.getElementById('btn-processar-ia');
             const statusMsg = document.getElementById('ai-status-msg');

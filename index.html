@@ -441,25 +441,24 @@
         import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ============================================
-        // ✅ CONFIGURAÇÃO DAS APIs (COM SUA CHAVE)
+        // ✅ CONFIGURAÇÃO DAS APIs
         // ============================================
         const DEEPSEEK_API_KEY = "sk-ce5f9ee319cc4fdf8f79565181b92c47";
         const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
         
-        // ✅ SUA CHAVE GEMINI - FORMATO AQ.Ab8... (NOVO FORMATO DO GOOGLE)
-        const GEMINI_API_KEY = "AQ.AB8RN6LpuOwsJkjYe7OJOo0DWA2b-VgEaujKsAKGWQmCOmkg-w";
-        // ✅ URL CORRETA DO GEMINI
+        // 🚨 CHAVE CORRIGIDA AQUI: Cole sua nova chave gerada no aistudio.google.com
+        const GEMINI_API_KEY = "AQ.Ab8RN6LhK3DTxiCxunOM5ntnNClLtIuLhmDYY7Zz0KcqhjweoA"; 
+        
         const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
-        // VALIDAÇÃO DA CHAVE (ACEITA AMBOS OS FORMATOS)
+        // VALIDAÇÃO DA CHAVE (Alterado para aceitar o novo formato AQ. do Google)
         const isGeminiKeyValid = GEMINI_API_KEY && 
-                                 (GEMINI_API_KEY.startsWith("AIzaSy") || 
-                                  GEMINI_API_KEY.startsWith("AQ.")) && 
-                                 GEMINI_API_KEY.length > 10;
+                                 (GEMINI_API_KEY.startsWith("AIzaSy") || GEMINI_API_KEY.startsWith("AQ.")) && 
+                                 GEMINI_API_KEY.length > 30;
 
         console.log("🚀 Inicializando sistema...");
         console.log("💜 DeepSeek:", DEEPSEEK_API_KEY ? "✅ Configurado" : "❌");
-        console.log("💚 Gemini:", isGeminiKeyValid ? "✅ Configurado (formato: " + GEMINI_API_KEY.substring(0, 10) + "...)" : "❌ Chave inválida");
+        console.log("💚 Gemini:", isGeminiKeyValid ? "✅ Configurado" : "❌ Chave inválida ou não configurada");
 
         // ============================================
         // FUNÇÃO COM DUAL API
@@ -555,12 +554,12 @@
                             return { 
                                 resposta: `⚠️ **Erro de autenticação no Gemini.**
 
-**Sua chave (${GEMINI_API_KEY.substring(0, 15)}...) está no formato correto mas pode estar inválida.**
+**Sua chave está sendo recusada pelo Google.**
 
-**Soluções:**
-1. Verifique se a chave está ativa no Google AI Studio
-2. Tente criar uma nova chave em: https://aistudio.google.com/apikey
-3. Copie a chave exatamente como aparece (incluindo todos os caracteres)
+**Solução Exata:**
+1. Acesse https://aistudio.google.com/app/apikey
+2. Clique em "Create API key".
+3. Cole esta nova chave no código no lugar da antiga.
 
 **Erro:** ${geminiError.message}`,
                                 modelo: "Erro"
@@ -569,13 +568,13 @@
                         
                         if (geminiError.message === "GEMINI_KEY_NOT_CONFIGURED") {
                             return { 
-                                resposta: `⚠️ **Chave do Gemini não configurada!**
+                                resposta: `⚠️ **Chave do Gemini Inválida ou Não Configurada!**
 
-**Sua chave atual:** ${GEMINI_API_KEY || "Não definida"}
+**Você precisa usar uma chave padrão do Google.**
 
 **Para configurar:**
-1. Acesse https://aistudio.google.com/apikey
-2. Crie uma chave (formato: \`AIzaSy...\` ou \`AQ.Ab8...\`)
+1. Acesse https://aistudio.google.com/app/apikey
+2. Crie uma chave
 3. Cole no código: \`GEMINI_API_KEY = "SUA_CHAVE_AQUI"\``,
                                 modelo: "Erro"
                             };
@@ -588,23 +587,17 @@
 **Gemini:** ${geminiError.message}
 
 **Soluções:**
-1. Configure a chave do Gemini corretamente
+1. Verifique as configurações das suas chaves de API.
 2. Ou adicione créditos no DeepSeek`,
                             modelo: "Erro"
-                        };
-                    }
-                }
-                
-                return { 
-                    resposta: `❌ **Erro no DeepSeek:** ${error.message}`,
-                    modelo: "Erro"
-                };
-            }
+        window.saveApiKey = () => {
+            const key = document.getElementById('gemini-api-key').value.trim();
+            if(!key) return showToast("Digite uma chave API.", true);
+            if(!key.startsWith('AIzaSy') && !key.startsWith('AQ.')) return showToast("Formato inválido. Chaves do Google começam com AIzaSy ou AQ...", true);
+            localStorage.setItem('gemini_api_key_v2', key);
+            showToast("Chave salva com segurança no seu navegador!");
         };
 
-        // ============================================
-        // FUNÇÃO PARA EXTRAIR QUESTÕES
-        // ============================================
         window.processarComIA = async () => {
             const edital = document.getElementById('ai-edital').value;
             const prova = document.getElementById('ai-prova').value;
@@ -614,6 +607,12 @@
                 showToast("Cole o texto da prova!", true);
                 return;
             }
+
+            // Resgata a chave validada do input ou do localStorage (ou usa a padrão do código)
+            let apiKey = document.getElementById('gemini-api-key').value.trim() || localStorage.getItem('gemini_api_key_v2') || GEMINI_API_KEY;
+            
+            if (!apiKey) return showToast("Insira a sua chave API do Google Gemini acima.", true);
+            if (!apiKey.startsWith('AIzaSy') && !apiKey.startsWith('AQ.')) return showToast("Sua chave da API é inválida. Ela deve começar com AIzaSy ou AQ...", true);
 
             const btn = document.getElementById('btn-processar-ia');
             const statusMsg = document.getElementById('ai-status-msg');
@@ -1353,7 +1352,6 @@ EXEMPLO:
         }
 
         console.log("🚀 Sistema pronto!");
-        console.log("💚 Gemini Chave:", GEMINI_API_KEY.substring(0, 15) + "... (" + GEMINI_API_KEY.length + " caracteres)");
     </script>
 </body>
 </html>

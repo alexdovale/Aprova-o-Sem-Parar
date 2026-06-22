@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aprovação Sem Parar</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <!-- Chart.js para Estatísticas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
@@ -18,15 +14,13 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 50; display: flex; flex-direction: column; gap: 10px; }
         .toast { min-width: 250px; padding: 16px; border-radius: 8px; color: white; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); animation: slideIn 0.3s ease-out forwards; display: flex; align-items: center; gap: 12px; }
-        .toast.success { background-color: #4F46E5; } /* Indigo 600 */
-        .toast.error { background-color: #EF4444; } /* Red 500 */
-        .toast.warning { background-color: #F59E0B; } /* Amber 500 */
+        .toast.success { background-color: #4F46E5; }
+        .toast.error { background-color: #EF4444; }
         .toast.fade-out { animation: slideOut 0.3s ease-in forwards; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4F46E5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Modal Style */
         .modal-overlay { background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); }
     </style>
 </head>
@@ -34,14 +28,12 @@
 
     <div id="toast-container"></div>
 
-    <!-- TELA DE LOADING INICIAL -->
     <div id="loading-screen" class="fixed inset-0 bg-slate-100 z-50 flex flex-col items-center justify-center">
         <img src="https://raw.githubusercontent.com/alexdovale/Aprova-o-Sem-Parar/main/Logo/logo.png" alt="Aprovação Sem Parar" class="h-24 object-contain animate-pulse mb-6">
         <div class="loader mb-4"></div>
         <p class="text-slate-600 font-semibold">Conectando ao Banco de Dados...</p>
     </div>
 
-    <!-- TELA DE LOGIN / CADASTRO -->
     <div id="auth-screen" class="hidden flex-grow flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full border border-slate-200">
             <div class="text-center mb-8">
@@ -49,61 +41,33 @@
                 <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Bem-vindo(a)</h1>
                 <p class="text-slate-500 mt-1">Acesse sua plataforma de estudos</p>
             </div>
-
-            <!-- Botão Google -->
             <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-3 shadow-sm mb-6">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
                 Continuar com o Google
             </button>
-
             <div class="flex items-center gap-4 mb-6">
                 <div class="flex-1 h-px bg-slate-200"></div>
                 <span class="text-sm text-slate-400 font-medium">ou com e-mail</span>
                 <div class="flex-1 h-px bg-slate-200"></div>
             </div>
-
             <form id="auth-form" class="space-y-4">
-                <!-- Campos de Cadastro (Ocultos no Login) -->
                 <div id="register-fields" class="hidden space-y-4">
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Nome</label>
-                            <input type="text" id="auth-nome" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Sobrenome</label>
-                            <input type="text" id="auth-sobrenome" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
-                        </div>
+                        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Nome</label><input type="text" id="auth-nome" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"></div>
+                        <div><label class="block text-sm font-semibold text-slate-700 mb-1">Sobrenome</label><input type="text" id="auth-sobrenome" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"></div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">CPF</label>
-                        <input type="text" id="auth-cpf" placeholder="000.000.000-00" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
-                    </div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-1">CPF</label><input type="text" id="auth-cpf" placeholder="000.000.000-00" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"></div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Área/Concurso Foco</label>
                         <select id="auth-area" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
-                            <option value="Carreiras Militares (CBMERJ/PM)">Carreiras Militares (CBMERJ/PM)</option>
-                            <option value="Carreiras Policiais">Carreiras Policiais</option>
-                            <option value="Tribunais">Tribunais</option>
-                            <option value="Área Fiscal">Área Fiscal</option>
-                            <option value="Outros">Outros</option>
+                            <option>Carreiras Militares (CBMERJ/PM)</option><option>Carreiras Policiais</option><option>Tribunais</option><option>Área Fiscal</option><option>Outros</option>
                         </select>
                     </div>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">E-mail</label>
-                    <input type="email" id="auth-email" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Senha</label>
-                    <input type="password" id="auth-password" required minlength="6" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
-                </div>
-                <button type="submit" id="btn-auth-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md mt-2">
-                    Entrar
-                </button>
+                <div><label class="block text-sm font-semibold text-slate-700 mb-1">E-mail</label><input type="email" id="auth-email" required class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"></div>
+                <div><label class="block text-sm font-semibold text-slate-700 mb-1">Senha</label><input type="password" id="auth-password" required minlength="6" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"></div>
+                <button type="submit" id="btn-auth-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md mt-2">Entrar</button>
             </form>
-
             <div class="mt-6 text-center">
                 <p class="text-sm text-slate-600" id="auth-toggle-text">Não tem uma conta?</p>
                 <button onclick="toggleAuthMode()" id="btn-auth-toggle" class="text-indigo-600 font-bold hover:underline mt-1">Cadastre-se agora</button>
@@ -111,7 +75,6 @@
         </div>
     </div>
 
-    <!-- PAINEL DE CADERNOS (HOME) -->
     <div id="home-screen" class="hidden flex-grow flex-col">
         <header class="bg-indigo-800 text-white shadow-md py-4">
             <div class="max-w-5xl mx-auto px-4 flex items-center justify-between">
@@ -122,42 +85,31 @@
                 </div>
             </div>
         </header>
-
         <main class="max-w-5xl mx-auto w-full px-4 py-8 flex-grow">
             <div class="flex justify-between items-center mb-8">
                 <h2 class="text-3xl font-bold text-slate-800">Meus Cadernos</h2>
-                <button onclick="openNewCadernoModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
-                    <i class="ph ph-plus"></i> Novo Caderno
-                </button>
+                <button onclick="openNewCadernoModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"><i class="ph ph-plus"></i> Novo Caderno</button>
             </div>
-
-            <div id="cadernos-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                <!-- Cadernos carregados aqui -->
-            </div>
+            <div id="cadernos-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
         </main>
     </div>
 
-    <!-- APLICATIVO PRINCIPAL (Dentro de um Caderno) -->
     <div id="main-app" class="hidden flex-col min-h-screen">
         <header class="bg-indigo-700 text-white shadow-md">
             <div class="max-w-5xl mx-auto px-4 py-4">
                 <div class="flex flex-col sm:flex-row items-center justify-between mb-4">
                     <div class="flex items-center gap-4">
-                        <button onclick="goBackToHome()" class="bg-indigo-800 hover:bg-indigo-900 p-2 rounded-lg transition" title="Voltar aos Cadernos">
-                            <i class="ph-bold ph-arrow-left text-xl"></i>
-                        </button>
+                        <button onclick="goBackToHome()" class="bg-indigo-800 hover:bg-indigo-900 p-2 rounded-lg transition"><i class="ph-bold ph-arrow-left text-xl"></i></button>
                         <div>
                             <h1 id="app-caderno-title" class="text-2xl font-bold tracking-tight">Nome do Caderno</h1>
                             <p class="text-indigo-200 text-sm">Aprovação Sem Parar</p>
                         </div>
                     </div>
                 </div>
-                
                 <nav class="flex gap-2 bg-indigo-800 p-1 rounded-lg overflow-x-auto max-w-full">
                     <button onclick="switchTab('list')" id="btn-list" class="nav-btn active whitespace-nowrap px-4 py-2 rounded-md bg-white text-indigo-700 font-semibold transition-colors flex items-center gap-2 text-sm"><i class="ph ph-books"></i> Acervo</button>
                     <button onclick="switchTab('add')" id="btn-add" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm"><i class="ph ph-plus-circle"></i> Nova Questão</button>
-                    <!-- Trocamos o nome para refletir a nova ação segura -->
-                    <button onclick="switchTab('import')" id="btn-import" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm bg-purple-600 hover:bg-purple-700 border border-purple-400"><i class="ph ph-lightning"></i> Importação Rápida</button>
+                    <button onclick="switchTab('import')" id="btn-import" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white flex items-center gap-2 text-sm bg-indigo-500 hover:bg-indigo-600 border border-indigo-300"><i class="ph ph-file-pdf text-red-300"></i> Importar PDF</button>
                     <button onclick="switchTab('quiz')" id="btn-quiz" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm"><i class="ph ph-exam"></i> Simulado</button>
                     <button onclick="switchTab('stats')" id="btn-stats" class="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm"><i class="ph ph-chart-pie-slice"></i> Estatísticas</button>
                 </nav>
@@ -165,6 +117,7 @@
         </header>
 
         <main class="flex-grow max-w-5xl mx-auto w-full px-4 py-8">
+
             <!-- ABA 1: Acervo -->
             <div id="tab-list" class="tab-content active">
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
@@ -232,24 +185,73 @@
                 </div>
             </div>
 
-            <!-- ABA 3: Importação Rápida (SISTEMA SEGURO E À PROVA DE FALHAS) -->
+            <!-- ABA 3: Importar PDF -->
             <div id="tab-import" class="tab-content max-w-4xl mx-auto">
-                <div class="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200 border-t-4 border-t-purple-600">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex items-center gap-3">
-                            <i class="ph-duotone ph-lightning text-4xl text-purple-600"></i>
+
+                <div id="import-setup-section" class="space-y-6">
+
+                    <!-- CARD: Upload PDF com IA -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200 border-t-4 border-t-indigo-600">
+                        <div class="flex items-center gap-3 mb-5">
+                            <i class="ph-duotone ph-file-pdf text-4xl text-red-500"></i>
                             <div>
-                                <h2 class="text-2xl font-bold text-slate-800">Importação em Lote (Segura)</h2>
-                                <p class="text-slate-500 text-sm">Use o DeepSeek ou ChatGPT para formatar a prova de forma 100% gratuita e cole o resultado aqui.</p>
+                                <h2 class="text-xl font-bold text-slate-800">Upload Direto de PDF</h2>
+                                <p class="text-slate-500 text-sm">Envie o PDF da prova e o Claude extrai as questões automaticamente.</p>
+                            </div>
+                        </div>
+
+                        <!-- Chave API -->
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-5 flex gap-3 items-start">
+                            <i class="ph-fill ph-key text-amber-600 text-xl mt-0.5 shrink-0"></i>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-amber-800 mb-1">Chave API da Anthropic (Claude)</p>
+                                <p class="text-xs text-amber-700 mb-2">Necessária para processar o PDF. Crie gratuitamente em <a href="https://console.anthropic.com" target="_blank" class="underline font-bold">console.anthropic.com</a>. A chave não é salva em nenhum lugar.</p>
+                                <input type="password" id="anthropic-api-key" placeholder="sk-ant-api03-..." class="w-full px-3 py-2 rounded-lg border border-amber-300 focus:ring-2 focus:ring-amber-400 outline-none text-sm bg-white font-mono">
+                            </div>
+                        </div>
+
+                        <!-- Dropzone -->
+                        <div id="pdf-dropzone" class="border-2 border-dashed border-indigo-300 bg-indigo-50 rounded-xl p-10 text-center cursor-pointer hover:bg-indigo-100 hover:border-indigo-400 transition mb-4" onclick="document.getElementById('pdf-file-input').click()">
+                            <i class="ph-duotone ph-upload-simple text-5xl text-indigo-400 mb-3 block"></i>
+                            <p class="font-bold text-slate-700 mb-1">Clique aqui ou arraste o PDF da prova</p>
+                            <p class="text-sm text-slate-500">Suporta provas completas — o texto será extraído automaticamente</p>
+                            <input type="file" id="pdf-file-input" accept="application/pdf" class="hidden" onchange="handlePdfUpload(event)">
+                        </div>
+
+                        <!-- Status / Progresso -->
+                        <div id="pdf-status" class="hidden bg-slate-50 border border-slate-200 rounded-lg p-4">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="loader" style="width:24px;height:24px;border-width:3px;flex-shrink:0;"></div>
+                                <p id="pdf-status-text" class="text-sm font-semibold text-slate-700">Processando PDF...</p>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2.5">
+                                <div id="pdf-progress-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="space-y-6">
-                        <!-- Passo 1: Copiar Prompt -->
-                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-lg">
-                            <h3 class="font-bold text-slate-800 mb-2 flex items-center gap-2"><i class="ph-fill ph-number-circle-one text-purple-600 text-xl"></i> Peça para a IA formatar a prova</h3>
-                            <p class="text-sm text-slate-600 mb-3">Copie o texto abaixo e cole no seu ChatGPT, Claude ou DeepSeek junto com o PDF ou texto da sua prova.</p>
+
+                    <!-- Separador -->
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1 h-px bg-slate-200"></div>
+                        <span class="text-sm text-slate-400 font-semibold px-2">ou use uma IA gratuita externa</span>
+                        <div class="flex-1 h-px bg-slate-200"></div>
+                    </div>
+
+                    <!-- CARD: Colar JSON manualmente -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200 border-t-4 border-t-purple-600">
+                        <div class="flex items-center gap-3 mb-5">
+                            <i class="ph-duotone ph-lightning text-4xl text-purple-600"></i>
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800">Colar JSON (ChatGPT / DeepSeek)</h2>
+                                <p class="text-slate-500 text-sm">Use uma IA gratuita para formatar a prova e cole o resultado aqui.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 border border-slate-200 p-4 rounded-lg mb-5">
+                            <h3 class="font-bold text-slate-800 mb-2 text-sm flex items-center gap-2">
+                                <i class="ph-fill ph-number-circle-one text-purple-600 text-lg"></i>
+                                Copie este prompt e use junto com o PDF na sua IA favorita
+                            </h3>
                             <div class="relative">
                                 <pre id="ai-prompt-helper" class="bg-slate-800 text-slate-300 p-4 rounded text-xs overflow-x-auto whitespace-pre-wrap">Aja como um gerador de JSON para um sistema de estudos. Extraia as questões do material que vou enviar em anexo e me retorne APENAS um JSON Array nesse exato formato, sem nenhuma explicação adicional ou saudação. Formato exigido:
 
@@ -268,32 +270,30 @@
 ]
 
 Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, etc). Avalie o gabarito. Se não tiver gabarito, responda com a opção correta fundamentada. Aqui está o conteúdo da prova:</pre>
-                                <button onclick="copiarPromptHelper()" class="absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1 shadow-sm"><i class="ph-bold ph-copy"></i> Copiar Prompt</button>
+                                <button onclick="copiarPromptHelper()" class="absolute top-2 right-2 bg-slate-600 hover:bg-slate-500 text-white px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1"><i class="ph-bold ph-copy"></i> Copiar Prompt</button>
                             </div>
                         </div>
 
-                        <!-- Passo 2: Colar Resultado -->
-                        <div>
-                            <h3 class="font-bold text-slate-800 mb-2 flex items-center gap-2"><i class="ph-fill ph-number-circle-two text-purple-600 text-xl"></i> Cole o resultado da IA aqui</h3>
-                            <textarea id="ai-json-input" rows="8" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50 font-mono" placeholder="Cole o JSON ou o bloco de código que a IA gerou aqui..."></textarea>
-                        </div>
-                        
-                        <div class="pt-2 border-t border-slate-200">
-                            <button id="btn-processar-ia" onclick="window.processarJSONImportado()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-4 rounded-xl flex justify-center items-center gap-2 text-lg shadow-md transition-transform transform hover:scale-[1.01]"><i class="ph-bold ph-check-square"></i> Validar e Importar Questões</button>
-                        </div>
+                        <h3 class="font-bold text-slate-800 mb-2 text-sm flex items-center gap-2">
+                            <i class="ph-fill ph-number-circle-two text-purple-600 text-lg"></i>
+                            Cole o resultado da IA aqui
+                        </h3>
+                        <textarea id="ai-json-input" rows="6" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-slate-50 font-mono mb-4" placeholder="Cole o JSON gerado pela IA aqui..."></textarea>
+                        <button id="btn-processar-ia" onclick="window.processarJSONImportado()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl flex justify-center items-center gap-2 shadow-md transition">
+                            <i class="ph-bold ph-check-square"></i> Validar e Importar Questões
+                        </button>
                     </div>
-                </div>
 
-                <!-- REVISÃO DA IA -->
+                </div><!-- /import-setup-section -->
+
+                <!-- REVISÃO -->
                 <div id="ai-review-section" class="hidden bg-white rounded-xl shadow-sm p-6 sm:p-8 border border-slate-200 border-t-4 border-t-blue-500 mt-6">
                     <div class="flex justify-between items-center mb-6 border-b pb-4">
                         <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2"><i class="ph-fill ph-eye text-blue-500"></i> Revisão das Questões</h2>
                         <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">Encontradas: <span id="ai-review-count">0</span></span>
                     </div>
-                    <p class="text-slate-600 mb-6 text-sm">Verifique se as questões foram identificadas corretamente. Você pode excluir as que ficaram com defeito antes de salvar.</p>
-                    
+                    <p class="text-slate-600 mb-6 text-sm">Verifique se as questões foram identificadas corretamente. Exclua as que ficaram com defeito antes de salvar.</p>
                     <div id="ai-review-list" class="space-y-4 mb-8 max-h-[60vh] overflow-y-auto p-2"></div>
-
                     <div class="flex gap-4">
                         <button onclick="cancelarRevisaoIA()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 px-6 rounded-lg transition-colors">Descartar Tudo</button>
                         <button onclick="salvarRevisaoIA()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-md flex justify-center items-center gap-2">
@@ -309,12 +309,9 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
                     <i class="ph-duotone ph-exam text-6xl text-indigo-600 mb-4 inline-block"></i>
                     <h2 class="text-2xl font-bold text-slate-800 mb-2">Pronto para testar?</h2>
                     <p class="text-slate-600 mb-4">O simulado utilizará as questões do filtro atual na aba Acervo.</p>
-                    <div class="bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-lg mb-6 inline-block">
-                        Questões selecionadas: <strong id="quiz-ready-count" class="text-xl">0</strong>
-                    </div>
+                    <div class="bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-lg mb-6 inline-block">Questões selecionadas: <strong id="quiz-ready-count" class="text-xl">0</strong></div>
                     <button onclick="window.startQuiz()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full transition-transform transform hover:scale-105 shadow-lg">Iniciar Simulado Agora</button>
                 </div>
-                
                 <div id="quiz-active" class="hidden">
                     <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
                         <span class="font-bold text-slate-700">Questão <span id="quiz-current-num">1</span> de <span id="quiz-total-num">X</span></span>
@@ -328,7 +325,6 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
                         <button id="btn-quiz-finish" onclick="window.requestFinishQuiz()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors hidden">Finalizar Simulado</button>
                     </div>
                 </div>
-
                 <div id="quiz-results" class="hidden bg-white rounded-xl shadow-sm p-8 text-center border border-slate-200">
                     <div id="result-icon" class="mb-4"></div>
                     <h2 class="text-3xl font-bold text-slate-800 mb-2">Desempenho no Simulado</h2>
@@ -344,18 +340,10 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
                     <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
                         <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="ph-fill ph-target text-indigo-500"></i> Visão Geral</h3>
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-green-50 p-4 rounded-lg border border-green-100 text-center">
-                                <span class="block text-sm text-green-600 font-bold uppercase tracking-wider mb-1">Acertos</span>
-                                <span id="stat-acertos" class="text-3xl font-black text-green-700">0</span>
-                            </div>
-                            <div class="bg-red-50 p-4 rounded-lg border border-red-100 text-center">
-                                <span class="block text-sm text-red-600 font-bold uppercase tracking-wider mb-1">Erros</span>
-                                <span id="stat-erros" class="text-3xl font-black text-red-700">0</span>
-                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-100 text-center"><span class="block text-sm text-green-600 font-bold uppercase tracking-wider mb-1">Acertos</span><span id="stat-acertos" class="text-3xl font-black text-green-700">0</span></div>
+                            <div class="bg-red-50 p-4 rounded-lg border border-red-100 text-center"><span class="block text-sm text-red-600 font-bold uppercase tracking-wider mb-1">Erros</span><span id="stat-erros" class="text-3xl font-black text-red-700">0</span></div>
                         </div>
-                        <div class="mt-6">
-                            <canvas id="chartGeral" height="200"></canvas>
-                        </div>
+                        <div class="mt-6"><canvas id="chartGeral" height="200"></canvas></div>
                     </div>
                     <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
                         <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="ph-fill ph-chart-bar text-indigo-500"></i> Desempenho por Matéria</h3>
@@ -380,25 +368,18 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
         </div>
     </div>
 
-    <!-- SCRIPT PRINCIPAL -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        console.log("🚀 Inicializando sistema sem APIs externas problemáticas...");
-
-        // ============================================
-        // CONFIGURAÇÃO FIREBASE
-        // ============================================
         const firebaseConfig = {
             apiKey: "AIzaSyArg91ndzybNzBNJ0iRTOxxmeSFxV11s6A",
             authDomain: "questoes-estudos-aprovar.firebaseapp.com",
             projectId: "questoes-estudos-aprovar",
             storageBucket: "questoes-estudos-aprovar.firebasestorage.app",
             messagingSenderId: "966256805754",
-            appId: "1:966256805754:web:b7ad19428894a2943cf8c3",
-            measurementId: "G-KZM4VWXBP6"
+            appId: "1:966256805754:web:b7ad19428894a2943cf8c3"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -406,34 +387,27 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
         const db = getFirestore(app);
         const appId = 'questoes-estudos-aprovar';
         const googleProvider = new GoogleAuthProvider();
-        
-        let unsubscribeBanks = null;
-        let unsubscribeQuestions = null;
 
-        // ============================================
-        // ESTADO GLOBAL
-        // ============================================
-        let currentUser = null;
-        let isLoginMode = true;
-        let cadernos = [];
-        let currentCadernoId = null;
-        let questions = []; 
-        let filteredQuestions = [];
-        let chartGeralInstance = null;
-        let chartMateriasInstance = null;
-        let pendingAIQuestions = [];
+        let unsubscribeBanks = null, unsubscribeQuestions = null;
+        let currentUser = null, isLoginMode = true, cadernos = [], currentCadernoId = null;
+        let questions = [], filteredQuestions = [];
+        let chartGeralInstance = null, chartMateriasInstance = null;
+        window.pendingAIQuestions = [];
         const labels = ['A', 'B', 'C', 'D', 'E'];
 
-        // ============================================
-        // UI UTILS
-        // ============================================
+        // PDF.js worker
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        }
+
+        // ── TOAST & MODAL ────────────────────────────────────────
         window.showToast = (message, isError = false) => {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${isError ? 'error' : 'success'}`;
             toast.innerHTML = `<i class="ph-bold ${isError ? 'ph-warning-octagon' : 'ph-check-circle'} text-xl"></i> <span>${message}</span>`;
             container.appendChild(toast);
-            setTimeout(() => { toast.classList.add('fade-out'); setTimeout(() => toast.remove(), 300); }, 3000);
+            setTimeout(() => { toast.classList.add('fade-out'); setTimeout(() => toast.remove(), 300); }, 3500);
         };
 
         window.openModal = (title, desc, confirmText, confirmClass, onConfirm, iconHtml) => {
@@ -444,19 +418,15 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
             btn.className = `flex-1 font-bold py-2 px-4 rounded-lg transition-colors text-white ${confirmClass}`;
             btn.onclick = () => { onConfirm(); closeModal(); };
             document.getElementById('modal-icon').innerHTML = iconHtml || '<i class="ph-duotone ph-warning text-5xl text-amber-500"></i>';
-            const modal = document.getElementById('custom-modal');
-            modal.classList.remove('hidden');
+            document.getElementById('custom-modal').classList.remove('hidden');
             setTimeout(() => document.getElementById('modal-content-box').classList.remove('scale-95'), 10);
         };
-
         window.closeModal = () => {
             document.getElementById('modal-content-box').classList.add('scale-95');
             setTimeout(() => document.getElementById('custom-modal').classList.add('hidden'), 200);
         };
 
-        // ============================================
-        // AUTENTICAÇÃO
-        // ============================================
+        // ── AUTH ─────────────────────────────────────────────────
         onAuthStateChanged(auth, async (user) => {
             document.getElementById('loading-screen').classList.add('hidden');
             if (user) {
@@ -465,13 +435,9 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
                 document.getElementById('main-app').classList.add('hidden');
                 document.getElementById('home-screen').classList.remove('hidden');
                 document.getElementById('home-screen').classList.add('flex');
-                
                 let displayName = user.displayName;
-                if(!displayName) {
-                    try {
-                        const perfilSnap = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'perfil', 'dados'));
-                        if(perfilSnap.exists()) displayName = perfilSnap.data().nome;
-                    } catch(e){}
+                if (!displayName) {
+                    try { const s = await getDoc(doc(db,'artifacts',appId,'users',user.uid,'perfil','dados')); if(s.exists()) displayName = s.data().nome; } catch(e){}
                 }
                 document.getElementById('home-user-name').innerText = `Olá, ${displayName || user.email.split('@')[0]}`;
                 loadCadernos();
@@ -500,7 +466,6 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
             const password = document.getElementById('auth-password').value;
             const btn = document.getElementById('btn-auth-submit');
             btn.disabled = true; btn.innerText = 'Aguarde...';
-
             try {
                 if (isLoginMode) {
                     await signInWithEmailAndPassword(auth, email, password);
@@ -509,493 +474,403 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
                     const sobrenome = document.getElementById('auth-sobrenome').value;
                     const cpf = document.getElementById('auth-cpf').value;
                     const area = document.getElementById('auth-area').value;
-                    
-                    if(!nome || !sobrenome) throw new Error("Nome é obrigatório.");
-
-                    const userCred = await createUserWithEmailAndPassword(auth, email, password);
-                    await updateProfile(userCred.user, { displayName: `${nome} ${sobrenome}` });
-                    await setDoc(doc(db, 'artifacts', appId, 'users', userCred.user.uid, 'perfil', 'dados'), {
-                        nome, sobrenome, cpf, area, email, createdAt: new Date().toISOString()
-                    });
-                    showToast('Conta criada com sucesso!');
+                    if(!nome||!sobrenome) throw new Error("Nome é obrigatório.");
+                    const uc = await createUserWithEmailAndPassword(auth, email, password);
+                    await updateProfile(uc.user, { displayName: `${nome} ${sobrenome}` });
+                    await setDoc(doc(db,'artifacts',appId,'users',uc.user.uid,'perfil','dados'), { nome, sobrenome, cpf, area, email, createdAt: new Date().toISOString() });
+                    showToast('Conta criada!');
                 }
             } catch (error) {
-                console.error(error);
                 let msg = 'Erro na autenticação.';
-                if(error.code === 'auth/invalid-credential') msg = 'Email ou senha incorretos.';
-                if(error.code === 'auth/email-already-in-use') msg = 'E-mail já cadastrado.';
-                if(error.message === 'Nome é obrigatório.') msg = error.message;
+                if(error.code==='auth/invalid-credential') msg='Email ou senha incorretos.';
+                if(error.code==='auth/email-already-in-use') msg='E-mail já cadastrado.';
+                if(error.message==='Nome é obrigatório.') msg=error.message;
                 showToast(msg, true);
-            } finally {
-                btn.disabled = false; btn.innerText = isLoginMode ? 'Entrar' : 'Criar Conta';
-            }
+            } finally { btn.disabled=false; btn.innerText=isLoginMode?'Entrar':'Criar Conta'; }
         });
 
         window.loginWithGoogle = async () => {
             try {
                 const result = await signInWithPopup(auth, googleProvider);
-                const user = result.user;
-                const perfilSnap = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'perfil', 'dados'));
-                if(!perfilSnap.exists()) {
-                    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'perfil', 'dados'), {
-                        nome: user.displayName, email: user.email, provider: 'google', createdAt: new Date().toISOString()
-                    });
-                }
-            } catch (error) {
-                console.error(error); showToast('Erro no login com Google', true);
-            }
+                const u = result.user;
+                const s = await getDoc(doc(db,'artifacts',appId,'users',u.uid,'perfil','dados'));
+                if(!s.exists()) await setDoc(doc(db,'artifacts',appId,'users',u.uid,'perfil','dados'), { nome: u.displayName, email: u.email, provider:'google', createdAt: new Date().toISOString() });
+            } catch(e) { showToast('Erro no login com Google', true); }
         };
-
         window.logoutUser = async () => await signOut(auth);
 
-        // ============================================
-        // CADERNOS
-        // ============================================
+        // ── CADERNOS ─────────────────────────────────────────────
         function loadCadernos() {
             if (!currentUser) return;
-            const ref = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos');
-            unsubscribeBanks = onSnapshot(ref, (snapshot) => {
-                cadernos = [];
-                snapshot.forEach(doc => cadernos.push({ id: doc.id, ...doc.data() }));
-                renderCadernos();
-            });
+            const ref = collection(db,'artifacts',appId,'users',currentUser.uid,'cadernos');
+            unsubscribeBanks = onSnapshot(ref, (snap) => { cadernos=[]; snap.forEach(d=>cadernos.push({id:d.id,...d.data()})); renderCadernos(); });
         }
-
         function renderCadernos() {
             const grid = document.getElementById('cadernos-grid');
             grid.innerHTML = '';
-            if(cadernos.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-12"><p class="text-slate-500 mb-2">Você ainda não tem cadernos.</p><p class="text-sm">Clique em "Novo Caderno" para começar.</p></div>`;
-                return;
-            }
+            if(cadernos.length===0) { grid.innerHTML=`<div class="col-span-full text-center py-12"><p class="text-slate-500 mb-2">Você ainda não tem cadernos.</p><p class="text-sm">Clique em "Novo Caderno" para começar.</p></div>`; return; }
             cadernos.forEach(cad => {
-                grid.innerHTML += `
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition cursor-pointer flex flex-col items-center text-center relative group" onclick="openCaderno('${cad.id}', '${cad.nome}')">
-                        <button onclick="event.stopPropagation(); deleteCaderno('${cad.id}', '${cad.nome}')" class="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="ph-fill ph-trash text-xl"></i></button>
-                        <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center mb-4 text-indigo-600 text-3xl"><i class="ph-fill ${cad.icone || 'ph-book'}"></i></div>
-                        <h3 class="font-bold text-slate-800 text-lg mb-1">${cad.nome}</h3>
-                        <p class="text-xs text-slate-400">Clique para abrir</p>
-                    </div>
-                `;
+                grid.innerHTML += `<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition cursor-pointer flex flex-col items-center text-center relative group" onclick="openCaderno('${cad.id}','${cad.nome}')">
+                    <button onclick="event.stopPropagation();deleteCaderno('${cad.id}','${cad.nome}')" class="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="ph-fill ph-trash text-xl"></i></button>
+                    <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center mb-4 text-indigo-600 text-3xl"><i class="ph-fill ${cad.icone||'ph-book'}"></i></div>
+                    <h3 class="font-bold text-slate-800 text-lg mb-1">${cad.nome}</h3>
+                    <p class="text-xs text-slate-400">Clique para abrir</p>
+                </div>`;
             });
         }
-
         window.openNewCadernoModal = () => {
             const nome = prompt("Qual o nome do novo Caderno? (Ex: CFO CBMERJ, Polícia Civil)");
-            if(nome && nome.trim() !== '') {
-                const newId = 'cad_' + Date.now();
-                setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', newId), {
-                    nome: nome.trim(), icone: 'ph-notebook', createdAt: new Date().toISOString()
-                }).then(() => showToast("Caderno criado!"));
+            if(nome&&nome.trim()!=='') {
+                setDoc(doc(db,'artifacts',appId,'users',currentUser.uid,'cadernos','cad_'+Date.now()), { nome:nome.trim(), icone:'ph-notebook', createdAt:new Date().toISOString() }).then(()=>showToast("Caderno criado!"));
             }
         };
-
         window.deleteCaderno = (id, nome) => {
-            window.openModal(
-                `Excluir ${nome}?`, "Esta ação apagará o caderno e TODAS as questões dentro dele. Não pode ser desfeita.",
-                "Sim, Excluir", "bg-red-600 hover:bg-red-700",
-                () => {
-                    deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', id))
-                    .then(() => showToast("Caderno excluído."));
-                },
-                '<i class="ph-duotone ph-trash text-5xl text-red-500"></i>'
-            );
+            window.openModal(`Excluir ${nome}?`,"Esta ação apagará o caderno e TODAS as questões dentro dele.","Sim, Excluir","bg-red-600 hover:bg-red-700",
+            ()=>{ deleteDoc(doc(db,'artifacts',appId,'users',currentUser.uid,'cadernos',id)).then(()=>showToast("Caderno excluído.")); },
+            '<i class="ph-duotone ph-trash text-5xl text-red-500"></i>');
         };
-
         window.openCaderno = (id, nome) => {
-            currentCadernoId = id;
-            document.getElementById('home-screen').classList.add('hidden');
-            document.getElementById('home-screen').classList.remove('flex');
-            document.getElementById('main-app').classList.remove('hidden');
-            document.getElementById('main-app').classList.add('flex');
-            document.getElementById('app-caderno-title').innerText = nome;
-            loadQuestionsForCaderno();
-            window.switchTab('list');
+            currentCadernoId=id;
+            document.getElementById('home-screen').classList.add('hidden'); document.getElementById('home-screen').classList.remove('flex');
+            document.getElementById('main-app').classList.remove('hidden'); document.getElementById('main-app').classList.add('flex');
+            document.getElementById('app-caderno-title').innerText=nome;
+            loadQuestionsForCaderno(); window.switchTab('list');
         };
-
         window.goBackToHome = () => {
             if(unsubscribeQuestions) unsubscribeQuestions();
-            currentCadernoId = null; questions = []; filteredQuestions = [];
-            document.getElementById('main-app').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('flex');
-            document.getElementById('home-screen').classList.remove('hidden');
-            document.getElementById('home-screen').classList.add('flex');
+            currentCadernoId=null; questions=[]; filteredQuestions=[];
+            document.getElementById('main-app').classList.add('hidden'); document.getElementById('main-app').classList.remove('flex');
+            document.getElementById('home-screen').classList.remove('hidden'); document.getElementById('home-screen').classList.add('flex');
         };
 
-        // ============================================
-        // QUESTÕES (LISTA E FILTROS)
-        // ============================================
+        // ── QUESTÕES ─────────────────────────────────────────────
         function loadQuestionsForCaderno() {
-            if (!currentUser || !currentCadernoId) return;
-            const ref = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', currentCadernoId, 'questoes');
-            unsubscribeQuestions = onSnapshot(ref, (snapshot) => {
-                questions = [];
-                snapshot.forEach(doc => questions.push({ dbId: doc.id, ...doc.data() }));
-                questions.sort((a, b) => a.id - b.id);
+            if(!currentUser||!currentCadernoId) return;
+            const ref = collection(db,'artifacts',appId,'users',currentUser.uid,'cadernos',currentCadernoId,'questoes');
+            unsubscribeQuestions = onSnapshot(ref, (snap) => {
+                questions=[]; snap.forEach(d=>questions.push({dbId:d.id,...d.data()}));
+                questions.sort((a,b)=>a.id-b.id);
                 populateFilters(); renderList(); updateStats();
             });
         }
 
         window.switchTab = (tabId) => {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(el => {
-                if(el.id === 'btn-import') {
-                    el.className = "nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm bg-purple-600 hover:bg-purple-700 border border-purple-400";
-                } else {
-                    el.className = "nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm";
-                }
+            document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el=>{
+                if(el.id==='btn-import') el.className="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white flex items-center gap-2 text-sm bg-indigo-500 hover:bg-indigo-600 border border-indigo-300";
+                else el.className="nav-btn whitespace-nowrap px-4 py-2 rounded-md text-white hover:bg-indigo-600 transition-colors flex items-center gap-2 text-sm";
             });
-
             document.getElementById(`tab-${tabId}`).classList.add('active');
             const btn = document.getElementById(`btn-${tabId}`);
-            if(tabId === 'import') {
-                btn.classList.add('ring-2', 'ring-white');
-            } else {
-                btn.classList.remove('text-white', 'hover:bg-indigo-600');
-                btn.classList.add('bg-white', 'text-indigo-700');
-            }
-
-            if (tabId === 'list') { populateFilters(); renderList(); } 
-            else if (tabId === 'quiz') {
+            if(tabId==='import') { btn.classList.add('ring-2','ring-white'); }
+            else { btn.classList.remove('text-white','hover:bg-indigo-600'); btn.classList.add('bg-white','text-indigo-700'); }
+            if(tabId==='list') { populateFilters(); renderList(); }
+            else if(tabId==='quiz') {
                 document.getElementById('quiz-setup').classList.remove('hidden');
                 document.getElementById('quiz-active').classList.add('hidden');
                 document.getElementById('quiz-results').classList.add('hidden');
                 document.getElementById('quiz-ready-count').innerText = filteredQuestions.length;
-            } else if (tabId === 'stats') { updateStats(); }
+            } else if(tabId==='stats') { updateStats(); }
         };
 
         window.populateFilters = () => {
-            const fill = (id, prop, def) => {
-                const s = document.getElementById(id); const cur = s.value;
-                const arr = [...new Set(questions.map(q => q[prop]))].filter(Boolean).sort();
-                s.innerHTML = `<option value="">${def}</option>` + arr.map(i => `<option value="${i}">${i}</option>`).join('');
-                s.value = cur; 
+            const fill = (id,prop,def) => {
+                const s=document.getElementById(id); const cur=s.value;
+                const arr=[...new Set(questions.map(q=>q[prop]))].filter(Boolean).sort();
+                s.innerHTML=`<option value="">${def}</option>`+arr.map(i=>`<option value="${i}">${i}</option>`).join('');
+                s.value=cur;
             };
-            fill('filter-materia', 'materia', 'Todas as Matérias');
-            fill('filter-assunto', 'assunto', 'Todos os Assuntos');
-            fill('filter-banca', 'banca', 'Todas as Bancas');
-            fill('filter-ano', 'ano', 'Todos os Anos');
+            fill('filter-materia','materia','Todas as Matérias');
+            fill('filter-assunto','assunto','Todos os Assuntos');
+            fill('filter-banca','banca','Todas as Bancas');
+            fill('filter-ano','ano','Todos os Anos');
         };
-
         window.clearFilters = () => {
-            ['materia','assunto','banca','ano','desempenho'].forEach(id => document.getElementById(`filter-${id}`).value = "");
+            ['materia','assunto','banca','ano','desempenho'].forEach(id=>document.getElementById(`filter-${id}`).value="");
             renderList(); showToast("Filtros limpos!");
         };
 
         window.renderList = () => {
-            const fM = document.getElementById('filter-materia').value, fAs = document.getElementById('filter-assunto').value;
-            const fB = document.getElementById('filter-banca').value, fAn = document.getElementById('filter-ano').value;
-            const fD = document.getElementById('filter-desempenho').value;
-
-            filteredQuestions = questions.filter(q => {
-                if (fM && q.materia !== fM) return false; if (fAs && q.assunto !== fAs) return false;
-                if (fB && q.banca !== fB) return false; if (fAn && q.ano !== fAn) return false;
-                if (fD && ((fD==='novo' && q.historico!==null) || (fD!=='novo' && q.historico!==fD))) return false;
+            const fM=document.getElementById('filter-materia').value, fAs=document.getElementById('filter-assunto').value;
+            const fB=document.getElementById('filter-banca').value, fAn=document.getElementById('filter-ano').value;
+            const fD=document.getElementById('filter-desempenho').value;
+            filteredQuestions=questions.filter(q=>{
+                if(fM&&q.materia!==fM)return false; if(fAs&&q.assunto!==fAs)return false;
+                if(fB&&q.banca!==fB)return false; if(fAn&&q.ano!==fAn)return false;
+                if(fD&&((fD==='novo'&&q.historico!==null)||(fD!=='novo'&&q.historico!==fD)))return false;
                 return true;
             });
-
-            const container = document.getElementById('questions-container');
-            document.getElementById('total-questions').innerText = `${filteredQuestions.length} questões`;
-            container.innerHTML = '';
-            if (filteredQuestions.length === 0) {
-                container.innerHTML = `<div class="text-center py-12 bg-white rounded-xl border border-slate-200"><i class="ph-duotone ph-magnifying-glass text-6xl text-slate-300 mb-3"></i><p class="text-slate-500">Nenhuma questão encontrada.</p></div>`;
-                return;
-            }
-
-            [...filteredQuestions].reverse().forEach(q => {
-                let badge = q.historico === 'acertou' ? `<span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded"><i class="ph-fill ph-check-circle"></i> Já Acertei</span>` :
-                            q.historico === 'errou' ? `<span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded"><i class="ph-fill ph-x-circle"></i> Já Errei</span>` :
-                            `<span class="bg-slate-100 text-slate-500 text-xs font-bold px-2 py-1 rounded"><i class="ph-fill ph-minus-circle"></i> Não Resolvida</span>`;
-                let opts = '';
-                q.opcoes.forEach((opt, i) => {
-                    if(!opt) return;
-                    opts += `<div class="p-3 border rounded-lg mb-2 text-sm ${i === q.correta ? 'bg-green-50 border-green-200 font-medium' : 'bg-slate-50 border-slate-200'}"><span class="font-bold mr-2 ${i === q.correta ? 'text-green-600' : 'text-slate-500'}">${labels[i]})</span> ${opt} ${i === q.correta ? '<i class="ph-fill ph-check-circle text-green-600 float-right text-lg"></i>' : ''}</div>`;
-                });
-                container.innerHTML += `
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative group">
-                        <button onclick="deleteQuestion('${q.dbId}')" class="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="ph-fill ph-trash text-lg"></i></button>
-                        <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex flex-wrap gap-2 pr-10">
-                            <span class="bg-slate-800 text-white text-xs font-bold px-2 py-1 rounded">${q.banca} ${q.ano}</span>
-                            <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded">${q.materia}</span>
-                            <span class="bg-slate-200 text-slate-800 text-xs font-bold px-2 py-1 rounded">${q.assunto}</span>
-                            ${badge}
-                        </div>
-                        <div class="p-6">
-                            <p class="text-slate-800 font-medium mb-6 leading-relaxed">${q.enunciado.replace(/\n/g, '<br>')}</p>
-                            <div class="mb-4">${opts}</div>
-                            ${q.explicacao ? `<div class="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-lg text-sm text-indigo-800"><strong><i class="ph ph-info"></i> Resolução:</strong><br>${q.explicacao}</div>` : ''}
-                        </div>
-                    </div>`;
+            const container=document.getElementById('questions-container');
+            document.getElementById('total-questions').innerText=`${filteredQuestions.length} questões`;
+            container.innerHTML='';
+            if(filteredQuestions.length===0){ container.innerHTML=`<div class="text-center py-12 bg-white rounded-xl border border-slate-200"><i class="ph-duotone ph-magnifying-glass text-6xl text-slate-300 mb-3"></i><p class="text-slate-500">Nenhuma questão encontrada.</p></div>`; return; }
+            [...filteredQuestions].reverse().forEach(q=>{
+                let badge=q.historico==='acertou'?`<span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded"><i class="ph-fill ph-check-circle"></i> Já Acertei</span>`:q.historico==='errou'?`<span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded"><i class="ph-fill ph-x-circle"></i> Já Errei</span>`:`<span class="bg-slate-100 text-slate-500 text-xs font-bold px-2 py-1 rounded"><i class="ph-fill ph-minus-circle"></i> Não Resolvida</span>`;
+                let opts='';
+                q.opcoes.forEach((opt,i)=>{ if(!opt)return; opts+=`<div class="p-3 border rounded-lg mb-2 text-sm ${i===q.correta?'bg-green-50 border-green-200 font-medium':'bg-slate-50 border-slate-200'}"><span class="font-bold mr-2 ${i===q.correta?'text-green-600':'text-slate-500'}">${labels[i]})</span> ${opt} ${i===q.correta?'<i class="ph-fill ph-check-circle text-green-600 float-right text-lg"></i>':''}</div>`; });
+                container.innerHTML+=`<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative group">
+                    <button onclick="deleteQuestion('${q.dbId}')" class="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="ph-fill ph-trash text-lg"></i></button>
+                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex flex-wrap gap-2 pr-10">
+                        <span class="bg-slate-800 text-white text-xs font-bold px-2 py-1 rounded">${q.banca} ${q.ano}</span>
+                        <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded">${q.materia}</span>
+                        <span class="bg-slate-200 text-slate-800 text-xs font-bold px-2 py-1 rounded">${q.assunto}</span>
+                        ${badge}
+                    </div>
+                    <div class="p-6"><p class="text-slate-800 font-medium mb-6 leading-relaxed">${q.enunciado.replace(/\n/g,'<br>')}</p><div class="mb-4">${opts}</div>${q.explicacao?`<div class="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-lg text-sm text-indigo-800"><strong><i class="ph ph-info"></i> Resolução:</strong><br>${q.explicacao}</div>`:''}</div>
+                </div>`;
             });
         };
 
         window.deleteQuestion = (dbId) => {
-            window.openModal("Excluir Questão?", "Tem certeza que deseja apagar esta questão do acervo?", "Excluir", "bg-red-600 hover:bg-red-700", 
-            () => { deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', currentCadernoId, 'questoes', dbId)); },
+            window.openModal("Excluir Questão?","Tem certeza que deseja apagar esta questão?","Excluir","bg-red-600 hover:bg-red-700",
+            ()=>{ deleteDoc(doc(db,'artifacts',appId,'users',currentUser.uid,'cadernos',currentCadernoId,'questoes',dbId)); },
             '<i class="ph-duotone ph-trash text-5xl text-red-500"></i>');
         };
 
-        // ============================================
-        // ADD MANUAL
-        // ============================================
+        // ── ADD MANUAL ───────────────────────────────────────────
         document.getElementById('add-question-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const btn = this.querySelector('button[type="submit"]');
-            btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Salvando...';
-            
-            const ops = [
-                document.getElementById('input-opt-0').value, document.getElementById('input-opt-1').value,
-                document.getElementById('input-opt-2').value, document.getElementById('input-opt-3').value,
-                document.getElementById('input-opt-4').value
-            ].filter(Boolean);
-
-            const q = {
-                id: Date.now(), banca: document.getElementById('input-banca').value, ano: document.getElementById('input-ano').value,
-                tipo: document.getElementById('input-tipo').value, materia: document.getElementById('input-materia').value,
-                assunto: document.getElementById('input-assunto').value, enunciado: document.getElementById('input-enunciado').value,
-                opcoes: ops, correta: parseInt(document.getElementById('input-correta').value),
-                explicacao: document.getElementById('input-explicacao').value, historico: null, createdAt: new Date().toISOString()
-            };
-            try {
-                await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', currentCadernoId, 'questoes', q.id.toString()), q);
-                this.reset(); showToast("Salva na nuvem!"); window.switchTab('list');
-            } catch(e) { console.error(e); showToast("Erro.", true); }
-            finally { btn.disabled = false; btn.innerHTML = '<i class="ph ph-cloud-arrow-up text-xl"></i> Salvar na Nuvem'; }
+            const btn=this.querySelector('button[type="submit"]');
+            btn.disabled=true; btn.innerHTML='<i class="ph ph-spinner animate-spin text-xl"></i> Salvando...';
+            const ops=[document.getElementById('input-opt-0').value,document.getElementById('input-opt-1').value,document.getElementById('input-opt-2').value,document.getElementById('input-opt-3').value,document.getElementById('input-opt-4').value].filter(Boolean);
+            const q={ id:Date.now(), banca:document.getElementById('input-banca').value, ano:document.getElementById('input-ano').value, tipo:document.getElementById('input-tipo').value, materia:document.getElementById('input-materia').value, assunto:document.getElementById('input-assunto').value, enunciado:document.getElementById('input-enunciado').value, opcoes:ops, correta:parseInt(document.getElementById('input-correta').value), explicacao:document.getElementById('input-explicacao').value, historico:null, createdAt:new Date().toISOString() };
+            try { await setDoc(doc(db,'artifacts',appId,'users',currentUser.uid,'cadernos',currentCadernoId,'questoes',q.id.toString()),q); this.reset(); showToast("Salva na nuvem!"); window.switchTab('list'); }
+            catch(e){ showToast("Erro.", true); }
+            finally { btn.disabled=false; btn.innerHTML='<i class="ph ph-cloud-arrow-up text-xl"></i> Salvar na Nuvem'; }
         });
 
-        // ============================================
-        // IMPORTAÇÃO MANUAL SEGURA (COPY & PASTE JSON)
-        // ============================================
+        // ── PDF UPLOAD ───────────────────────────────────────────
+        // Drag & drop
+        document.addEventListener('DOMContentLoaded', () => {
+            const dz = document.getElementById('pdf-dropzone');
+            if(!dz) return;
+            dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('bg-indigo-100','border-indigo-500'); });
+            dz.addEventListener('dragleave', () => dz.classList.remove('bg-indigo-100','border-indigo-500'));
+            dz.addEventListener('drop', e => {
+                e.preventDefault(); dz.classList.remove('bg-indigo-100','border-indigo-500');
+                const file=e.dataTransfer.files[0];
+                if(file&&file.type==='application/pdf') processPdfFile(file);
+                else showToast('Selecione um arquivo PDF válido.', true);
+            });
+        });
+
+        window.handlePdfUpload = (e) => { const f=e.target.files[0]; if(f) processPdfFile(f); };
+
+        async function processPdfFile(file) {
+            const apiKey = document.getElementById('anthropic-api-key').value.trim();
+            if(!apiKey || !apiKey.startsWith('sk-ant')) return showToast('Insira sua chave de API da Anthropic antes de continuar.', true);
+
+            const statusDiv=document.getElementById('pdf-status');
+            statusDiv.classList.remove('hidden');
+            setProgress(10,'Lendo o PDF...');
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let fullText=''; const total=pdf.numPages;
+                for(let i=1;i<=total;i++){
+                    setProgress(10+Math.round((i/total)*40),`Extraindo página ${i} de ${total}...`);
+                    const page=await pdf.getPage(i);
+                    const content=await page.getTextContent();
+                    fullText+=content.items.map(item=>item.str).join(' ')+'\n';
+                }
+                if(fullText.trim().length<50) throw new Error('O PDF parece ser uma imagem escaneada. Converta para PDF com texto selecionável primeiro.');
+
+                setProgress(55,'Enviando para o Claude...');
+
+                const prompt=`Você é um extrator de questões de provas de concurso. Analise o texto abaixo e retorne APENAS um JSON Array com as questões encontradas. Não inclua nenhum texto adicional, apenas o JSON puro.
+
+Formato obrigatório:
+[
+  {
+    "banca": "Nome da Banca",
+    "ano": "Ano",
+    "tipo": "Múltipla Escolha",
+    "materia": "Matéria",
+    "assunto": "Assunto específico",
+    "enunciado": "Texto completo da questão",
+    "opcoes": ["A) opção", "B) opção", "C) opção", "D) opção", "E) opção"],
+    "correta": 0,
+    "explicacao": "Justificativa da resposta correta"
+  }
+]
+
+REGRAS: "correta" é índice 0-4 (0=A,1=B,2=C,3=D,4=E). Mantenha as opções completas com a letra. Se não souber banca/ano use "Desconhecida"/"2024". Extraia TODAS as questões.
+
+TEXTO DA PROVA:
+${fullText.substring(0,25000)}`;
+
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method:'POST',
+                    headers:{ 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+                    body:JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:8000, messages:[{role:'user',content:prompt}] })
+                });
+
+                if(!response.ok){ const err=await response.json(); throw new Error(err.error?.message||`Erro na API: ${response.status}`); }
+
+                setProgress(85,'Processando resposta...');
+                const data=await response.json();
+                let rawText=data.content[0]?.text||'';
+                rawText=rawText.replace(/```json/gi,'').replace(/```/g,'').trim();
+                const match=rawText.match(/\[[\s\S]*\]/);
+                if(match) rawText=match[0];
+
+                let questoes=JSON.parse(rawText);
+                questoes=questoes.filter(q=>q.enunciado&&q.enunciado.length>10&&Array.isArray(q.opcoes));
+                if(questoes.length===0) throw new Error('Nenhuma questão foi identificada no PDF.');
+
+                setProgress(100,`${questoes.length} questões extraídas!`);
+                window.pendingAIQuestions=questoes;
+                setTimeout(()=>{ statusDiv.classList.add('hidden'); renderAIReviewList(); showToast(`${questoes.length} questões extraídas do PDF!`); }, 800);
+
+            } catch(error) {
+                statusDiv.classList.add('hidden');
+                showToast('Erro: '+error.message, true);
+            }
+        }
+
+        function setProgress(pct,msg){
+            document.getElementById('pdf-progress-bar').style.width=pct+'%';
+            document.getElementById('pdf-status-text').textContent=msg;
+        }
+
+        // ── IMPORTAÇÃO JSON MANUAL ───────────────────────────────
         window.copiarPromptHelper = () => {
-            const texto = document.getElementById('ai-prompt-helper').innerText;
-            navigator.clipboard.writeText(texto).then(() => showToast("Prompt copiado! Cole na sua IA favorita."));
+            navigator.clipboard.writeText(document.getElementById('ai-prompt-helper').innerText).then(()=>showToast("Prompt copiado!"));
         };
 
         window.processarJSONImportado = () => {
-            const rawInput = document.getElementById('ai-json-input').value;
-            if (!rawInput.trim()) return showToast("Cole o texto gerado pela IA antes de prosseguir.", true);
-
-            const btn = document.getElementById('btn-processar-ia');
-            btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner animate-spin text-xl"></i> Processando...';
-
+            const raw=document.getElementById('ai-json-input').value;
+            if(!raw.trim()) return showToast("Cole o texto gerado pela IA antes de prosseguir.", true);
+            const btn=document.getElementById('btn-processar-ia');
+            btn.disabled=true; btn.innerHTML='<i class="ph ph-spinner animate-spin text-xl"></i> Processando...';
             try {
-                let textRes = rawInput;
-                // Tenta limpar marcações de código markdown se vierem junto
-                textRes = textRes.replace(/```json/gi, '').replace(/```/g, '').trim();
-                
-                // Tenta extrair apenas o array, caso a IA tenha conversado no início/fim
-                const match = textRes.match(/\[[\s\S]*\]/);
-                if (match) textRes = match[0];
-
-                let questoes;
-                try {
-                    questoes = JSON.parse(textRes);
-                } catch (e) {
-                    // Limpeza básica se o JSON estiver sujo
-                    textRes = textRes.replace(/,\s*]/g, ']');
-                    textRes = textRes.replace(/,\s*}/g, '}');
-                    questoes = JSON.parse(textRes);
-                }
-
-                if (!Array.isArray(questoes) || questoes.length === 0) {
-                    throw new Error("O texto colado não contém questões no formato correto.");
-                }
-
-                questoes = questoes.filter(q => {
-                    return q.enunciado && q.enunciado.length > 5 && 
-                           q.opcoes && Array.isArray(q.opcoes);
-                });
-
-                if (questoes.length === 0) throw new Error("As questões foram encontradas, mas faltam dados obrigatórios (como enunciado ou opções).");
-
-                pendingAIQuestions = questoes;
-                renderAIReviewList();
-                showToast(`${pendingAIQuestions.length} questões identificadas com sucesso!`);
-
-            } catch (error) {
-                console.error("Erro no Parse:", error);
-                showToast("Falha ao ler as questões. Verifique se o formato colado é o JSON correto.", true);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="ph-bold ph-check-square"></i> Validar e Importar Questões';
-            }
+                let text=raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+                const m=text.match(/\[[\s\S]*\]/); if(m) text=m[0];
+                let questoes; try { questoes=JSON.parse(text); } catch(e){ text=text.replace(/,\s*]/g,']').replace(/,\s*}/g,'}'); questoes=JSON.parse(text); }
+                if(!Array.isArray(questoes)||questoes.length===0) throw new Error("O texto colado não contém questões no formato correto.");
+                questoes=questoes.filter(q=>q.enunciado&&q.enunciado.length>5&&q.opcoes&&Array.isArray(q.opcoes));
+                if(questoes.length===0) throw new Error("Faltam dados obrigatórios nas questões (enunciado ou opções).");
+                window.pendingAIQuestions=questoes;
+                renderAIReviewList(); showToast(`${window.pendingAIQuestions.length} questões identificadas!`);
+            } catch(e) { showToast("Falha ao ler as questões. Verifique se o JSON está correto.", true); }
+            finally { btn.disabled=false; btn.innerHTML='<i class="ph-bold ph-check-square"></i> Validar e Importar Questões'; }
         };
 
         function renderAIReviewList() {
-            const setupSection = document.querySelector('#tab-import > div:first-child');
-            if (setupSection) setupSection.classList.add('hidden');
+            document.getElementById('import-setup-section').classList.add('hidden');
             document.getElementById('ai-review-section').classList.remove('hidden');
-            const list = document.getElementById('ai-review-list');
-            list.innerHTML = '';
-            
-            document.getElementById('ai-review-count').innerText = pendingAIQuestions.length;
-            document.getElementById('ai-btn-count').innerText = pendingAIQuestions.length;
-
-            if(pendingAIQuestions.length === 0) { list.innerHTML = '<p class="text-center text-slate-500">Nenhuma questão extraída.</p>'; return; }
-
-            pendingAIQuestions.forEach((q, idx) => {
-                let opts = '';
-                q.opcoes.forEach((opt, i) => { if(opt) opts += `<div class="text-xs p-1 ${i===parseInt(q.correta)?'bg-green-100 font-bold':''}">${labels[i] || '-'}) ${opt}</div>`; });
-                list.innerHTML += `
-                    <div class="border border-slate-200 p-4 rounded-lg bg-slate-50 relative" id="pending-q-${idx}">
-                        <button onclick="removePendingQ(${idx})" class="absolute top-2 right-2 text-red-500 hover:bg-red-100 p-1 rounded"><i class="ph-fill ph-trash"></i></button>
-                        <div class="flex gap-2 mb-2"><span class="bg-indigo-100 text-indigo-800 text-[10px] px-1 rounded">${q.materia || 'Diversos'}</span><span class="bg-slate-200 text-[10px] px-1 rounded">${q.assunto || 'Diversos'}</span></div>
-                        <p class="text-sm font-semibold mb-2 line-clamp-2">${q.enunciado || 'Sem enunciado'}</p>
-                        <div class="mb-2">${opts}</div>
-                    </div>`;
+            const list=document.getElementById('ai-review-list'); list.innerHTML='';
+            document.getElementById('ai-review-count').innerText=window.pendingAIQuestions.length;
+            document.getElementById('ai-btn-count').innerText=window.pendingAIQuestions.length;
+            if(window.pendingAIQuestions.length===0){ list.innerHTML='<p class="text-center text-slate-500">Nenhuma questão extraída.</p>'; return; }
+            window.pendingAIQuestions.forEach((q,idx)=>{
+                let opts=''; q.opcoes.forEach((opt,i)=>{ if(opt) opts+=`<div class="text-xs p-1 ${i===parseInt(q.correta)?'bg-green-100 font-bold':''}">${labels[i]||'-'}) ${opt}</div>`; });
+                list.innerHTML+=`<div class="border border-slate-200 p-4 rounded-lg bg-slate-50 relative" id="pending-q-${idx}">
+                    <button onclick="removePendingQ(${idx})" class="absolute top-2 right-2 text-red-500 hover:bg-red-100 p-1 rounded"><i class="ph-fill ph-trash"></i></button>
+                    <div class="flex gap-2 mb-2"><span class="bg-indigo-100 text-indigo-800 text-[10px] px-1 rounded">${q.materia||'Diversos'}</span><span class="bg-slate-200 text-[10px] px-1 rounded">${q.assunto||'Diversos'}</span></div>
+                    <p class="text-sm font-semibold mb-2 line-clamp-2">${q.enunciado||'Sem enunciado'}</p>
+                    <div class="mb-2">${opts}</div>
+                </div>`;
             });
         }
 
-        window.removePendingQ = (idx) => {
-            pendingAIQuestions.splice(idx, 1);
-            renderAIReviewList();
-        };
+        window.removePendingQ = (idx) => { window.pendingAIQuestions.splice(idx,1); renderAIReviewList(); };
 
         window.cancelarRevisaoIA = () => {
-            pendingAIQuestions = [];
+            window.pendingAIQuestions=[];
             document.getElementById('ai-review-section').classList.add('hidden');
-            const setupSection = document.querySelector('#tab-import > div:first-child');
-            if (setupSection) setupSection.classList.remove('hidden');
+            document.getElementById('import-setup-section').classList.remove('hidden');
         };
 
         window.salvarRevisaoIA = async () => {
-            if(pendingAIQuestions.length === 0) return cancelarRevisaoIA();
-            const btn = document.querySelector('#ai-review-section button.bg-indigo-600');
-            btn.disabled = true; btn.innerHTML = 'Salvando...';
+            if(window.pendingAIQuestions.length===0) return window.cancelarRevisaoIA();
+            const btn=document.querySelector('#ai-review-section button.bg-indigo-600');
+            btn.disabled=true; btn.innerHTML='Salvando...';
             try {
-                let maxId = Date.now();
-                for (const q of pendingAIQuestions) {
-                    q.id = maxId++; 
-                    q.historico = null; 
-                    q.createdAt = new Date().toISOString();
-                    if (!Array.isArray(q.opcoes)) q.opcoes = [];
-                    // Fallbacks caso a IA tenha esquecido algo
-                    q.banca = q.banca || "Desconhecida";
-                    q.ano = q.ano || new Date().getFullYear();
-                    q.tipo = q.tipo || "Múltipla Escolha";
-                    q.materia = q.materia || "Geral";
-                    q.assunto = q.assunto || "Diversos";
-                    q.correta = isNaN(parseInt(q.correta)) ? 0 : parseInt(q.correta);
-                    
-                    await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', currentCadernoId, 'questoes', q.id.toString()), q);
+                let maxId=Date.now();
+                for(const q of window.pendingAIQuestions){
+                    q.id=maxId++; q.historico=null; q.createdAt=new Date().toISOString();
+                    if(!Array.isArray(q.opcoes)) q.opcoes=[];
+                    q.banca=q.banca||"Desconhecida"; q.ano=q.ano||new Date().getFullYear();
+                    q.tipo=q.tipo||"Múltipla Escolha"; q.materia=q.materia||"Geral";
+                    q.assunto=q.assunto||"Diversos"; q.correta=isNaN(parseInt(q.correta))?0:parseInt(q.correta);
+                    await setDoc(doc(db,'artifacts',appId,'users',currentUser.uid,'cadernos',currentCadernoId,'questoes',q.id.toString()),q);
                 }
-                showToast(`${pendingAIQuestions.length} questões salvas!`);
-                document.getElementById('ai-json-input').value = ''; 
-                cancelarRevisaoIA(); 
-                window.switchTab('list');
-            } catch (e) { 
-                console.error(e);
-                showToast("Erro ao salvar.", true); 
-            }
-            finally { 
-                btn.disabled = false; 
-                btn.innerHTML = '<i class="ph-bold ph-cloud-arrow-up"></i> Salvar no Acervo'; 
-            }
+                showToast(`${window.pendingAIQuestions.length} questões salvas!`);
+                document.getElementById('ai-json-input').value='';
+                window.cancelarRevisaoIA(); window.switchTab('list');
+            } catch(e){ showToast("Erro ao salvar.", true); }
+            finally { btn.disabled=false; btn.innerHTML='<i class="ph-bold ph-cloud-arrow-up"></i> Salvar no Acervo'; }
         };
 
-        // ============================================
-        // SIMULADO
-        // ============================================
-        let quizQuestions = []; let currentQuizIndex = 0; let userAnswers = [];
+        // ── SIMULADO ─────────────────────────────────────────────
+        let quizQuestions=[], currentQuizIndex=0, userAnswers=[];
         window.startQuiz = () => {
-            if (filteredQuestions.length === 0) return showToast("Filtre questões antes!", true);
-            quizQuestions = [...filteredQuestions].sort(() => Math.random() - 0.5);
-            currentQuizIndex = 0; userAnswers = new Array(quizQuestions.length).fill(null);
+            if(filteredQuestions.length===0) return showToast("Filtre questões antes!", true);
+            quizQuestions=[...filteredQuestions].sort(()=>Math.random()-0.5);
+            currentQuizIndex=0; userAnswers=new Array(quizQuestions.length).fill(null);
             document.getElementById('quiz-setup').classList.add('hidden');
             document.getElementById('quiz-results').classList.add('hidden');
             document.getElementById('quiz-active').classList.remove('hidden');
-            document.getElementById('quiz-total-num').innerText = quizQuestions.length;
+            document.getElementById('quiz-total-num').innerText=quizQuestions.length;
             window.renderQuizQuestion();
         };
-
         window.renderQuizQuestion = () => {
-            const q = quizQuestions[currentQuizIndex]; 
-            document.getElementById('quiz-current-num').innerText = currentQuizIndex + 1;
-            let optionsHtml = '';
-            q.opcoes.forEach((opt, i) => {
-                if(!opt) return; 
-                const isSel = userAnswers[currentQuizIndex] === i;
-                optionsHtml += `<label class="cursor-pointer block"><input type="radio" name="quiz-option" value="${i}" class="hidden" onchange="window.selectQuizOption(${i})"><div class="p-4 border-2 rounded-xl mb-3 ${isSel ? 'bg-indigo-50 border-indigo-500 text-indigo-900' : 'bg-white border-slate-200'}"><span class="font-bold mr-3 bg-white w-6 h-6 inline-flex items-center justify-center rounded border ${isSel ? 'border-indigo-500 text-indigo-600' : 'border-slate-300'}">${labels[i]}</span>${opt}</div></label>`;
-            });
-            document.getElementById('quiz-question-container').innerHTML = `<p class="text-lg text-slate-800 font-medium mb-8">${q.enunciado.replace(/\n/g, '<br>')}</p><div class="options-container">${optionsHtml}</div>`;
-            document.getElementById('btn-quiz-prev').classList.toggle('hidden', currentQuizIndex === 0);
-            if (currentQuizIndex === quizQuestions.length - 1) { 
-                document.getElementById('btn-quiz-next').classList.add('hidden'); 
-                document.getElementById('btn-quiz-finish').classList.remove('hidden'); 
-            } else { 
-                document.getElementById('btn-quiz-next').classList.remove('hidden'); 
-                document.getElementById('btn-quiz-finish').classList.add('hidden'); 
-            }
+            const q=quizQuestions[currentQuizIndex];
+            document.getElementById('quiz-current-num').innerText=currentQuizIndex+1;
+            let opts='';
+            q.opcoes.forEach((opt,i)=>{ if(!opt)return; const sel=userAnswers[currentQuizIndex]===i; opts+=`<label class="cursor-pointer block"><input type="radio" name="quiz-option" value="${i}" class="hidden" onchange="window.selectQuizOption(${i})"><div class="p-4 border-2 rounded-xl mb-3 ${sel?'bg-indigo-50 border-indigo-500 text-indigo-900':'bg-white border-slate-200'}"><span class="font-bold mr-3 bg-white w-6 h-6 inline-flex items-center justify-center rounded border ${sel?'border-indigo-500 text-indigo-600':'border-slate-300'}">${labels[i]}</span>${opt}</div></label>`; });
+            document.getElementById('quiz-question-container').innerHTML=`<p class="text-lg text-slate-800 font-medium mb-8">${q.enunciado.replace(/\n/g,'<br>')}</p><div>${opts}</div>`;
+            document.getElementById('btn-quiz-prev').classList.toggle('hidden',currentQuizIndex===0);
+            if(currentQuizIndex===quizQuestions.length-1){ document.getElementById('btn-quiz-next').classList.add('hidden'); document.getElementById('btn-quiz-finish').classList.remove('hidden'); }
+            else { document.getElementById('btn-quiz-next').classList.remove('hidden'); document.getElementById('btn-quiz-finish').classList.add('hidden'); }
         };
-
-        window.selectQuizOption = (index) => { userAnswers[currentQuizIndex] = index; window.renderQuizQuestion(); };
-        window.nextQuizQuestion = () => { if (currentQuizIndex < quizQuestions.length - 1) { currentQuizIndex++; window.renderQuizQuestion(); } };
-        window.prevQuizQuestion = () => { if (currentQuizIndex > 0) { currentQuizIndex--; window.renderQuizQuestion(); } };
-
-        window.requestFinishQuiz = () => {
-            if (userAnswers.filter(a => a === null).length > 0) {
-                window.openModal("Questões em Branco", "Você deixou questões sem resposta. Deseja finalizar mesmo assim?", "Sim, Finalizar", "bg-indigo-600", window.executeFinishQuiz);
-            } else { window.executeFinishQuiz(); }
+        window.selectQuizOption=(i)=>{ userAnswers[currentQuizIndex]=i; window.renderQuizQuestion(); };
+        window.nextQuizQuestion=()=>{ if(currentQuizIndex<quizQuestions.length-1){currentQuizIndex++;window.renderQuizQuestion();} };
+        window.prevQuizQuestion=()=>{ if(currentQuizIndex>0){currentQuizIndex--;window.renderQuizQuestion();} };
+        window.requestFinishQuiz=()=>{
+            if(userAnswers.filter(a=>a===null).length>0) window.openModal("Questões em Branco","Você deixou questões sem resposta. Finalizar assim mesmo?","Sim, Finalizar","bg-indigo-600",window.executeFinishQuiz);
+            else window.executeFinishQuiz();
         };
-
-        window.executeFinishQuiz = async () => {
-            let score = 0; const updatePromises = [];
-            quizQuestions.forEach((q, idx) => {
-                let h = null;
-                if (userAnswers[idx] === parseInt(q.correta)) { score++; h = 'acertou'; } 
-                else if (userAnswers[idx] !== null) { h = 'errou'; }
-                if(h) updatePromises.push(updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', currentCadernoId, 'questoes', q.dbId), { historico: h }));
+        window.executeFinishQuiz=async()=>{
+            let score=0; const promises=[];
+            quizQuestions.forEach((q,idx)=>{
+                let h=null;
+                if(userAnswers[idx]===parseInt(q.correta)){score++;h='acertou';}
+                else if(userAnswers[idx]!==null){h='errou';}
+                if(h) promises.push(updateDoc(doc(db,'artifacts',appId,'users',currentUser.uid,'cadernos',currentCadernoId,'questoes',q.dbId),{historico:h}));
             });
-            Promise.all(updatePromises).catch(e => console.error(e));
-
+            Promise.all(promises).catch(console.error);
             document.getElementById('quiz-active').classList.add('hidden');
             document.getElementById('quiz-results').classList.remove('hidden');
-            document.getElementById('result-score').innerText = score;
-            document.getElementById('result-total').innerText = quizQuestions.length;
-            setTimeout(() => {
-                const pb = document.getElementById('result-progress'); 
-                const p = (score / quizQuestions.length) * 100;
-                pb.style.width = p + '%'; 
-                pb.className = p >= 70 ? "bg-green-500 h-4 rounded-full transition-all duration-1000" : (p >= 40 ? "bg-yellow-500 h-4 rounded-full transition-all duration-1000" : "bg-red-500 h-4 rounded-full transition-all duration-1000");
-            }, 100);
+            document.getElementById('result-score').innerText=score;
+            document.getElementById('result-total').innerText=quizQuestions.length;
+            setTimeout(()=>{
+                const pb=document.getElementById('result-progress'), p=(score/quizQuestions.length)*100;
+                pb.style.width=p+'%';
+                pb.className=p>=70?"bg-green-500 h-4 rounded-full transition-all duration-1000":p>=40?"bg-yellow-500 h-4 rounded-full transition-all duration-1000":"bg-red-500 h-4 rounded-full transition-all duration-1000";
+            },100);
             showToast("Simulado finalizado!");
         };
 
-        // ============================================
-        // ESTATÍSTICAS
-        // ============================================
-        function updateStats() {
-            if(!document.getElementById('tab-stats').classList.contains('active')) return;
-            let acertos = 0, erros = 0, materias = {};
-            questions.forEach(q => {
-                if(q.historico === 'acertou') acertos++; 
-                if(q.historico === 'errou') erros++;
-                if(q.materia) {
-                    if(!materias[q.materia]) materias[q.materia] = {a:0, e:0};
-                    if(q.historico === 'acertou') materias[q.materia].a++;
-                    if(q.historico === 'errou') materias[q.materia].e++;
-                }
+        // ── ESTATÍSTICAS ─────────────────────────────────────────
+        function updateStats(){
+            if(!document.getElementById('tab-stats').classList.contains('active'))return;
+            let acertos=0,erros=0,materias={};
+            questions.forEach(q=>{
+                if(q.historico==='acertou')acertos++;
+                if(q.historico==='errou')erros++;
+                if(q.materia){if(!materias[q.materia])materias[q.materia]={a:0,e:0};if(q.historico==='acertou')materias[q.materia].a++;if(q.historico==='errou')materias[q.materia].e++;}
             });
-            document.getElementById('stat-acertos').innerText = acertos; 
-            document.getElementById('stat-erros').innerText = erros;
-
-            if(chartGeralInstance) chartGeralInstance.destroy();
-            chartGeralInstance = new Chart(document.getElementById('chartGeral'), {
-                type: 'doughnut', data: { labels: ['Acertos', 'Erros'], datasets: [{ data: [acertos, erros], backgroundColor: ['#22c55e', '#ef4444'] }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-            });
-
-            const matLabels = Object.keys(materias);
-            const matA = matLabels.map(m => materias[m].a); 
-            const matE = matLabels.map(m => materias[m].e);
-            if(chartMateriasInstance) chartMateriasInstance.destroy();
-            chartMateriasInstance = new Chart(document.getElementById('chartMaterias'), {
-                type: 'bar', data: { labels: matLabels, datasets: [{ label: 'Acertos', data: matA, backgroundColor: '#22c55e' }, { label: 'Erros', data: matE, backgroundColor: '#ef4444' }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
-            });
+            document.getElementById('stat-acertos').innerText=acertos;
+            document.getElementById('stat-erros').innerText=erros;
+            if(chartGeralInstance)chartGeralInstance.destroy();
+            chartGeralInstance=new Chart(document.getElementById('chartGeral'),{type:'doughnut',data:{labels:['Acertos','Erros'],datasets:[{data:[acertos,erros],backgroundColor:['#22c55e','#ef4444']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+            const ml=Object.keys(materias),ma=ml.map(m=>materias[m].a),me=ml.map(m=>materias[m].e);
+            if(chartMateriasInstance)chartMateriasInstance.destroy();
+            chartMateriasInstance=new Chart(document.getElementById('chartMaterias'),{type:'bar',data:{labels:ml,datasets:[{label:'Acertos',data:ma,backgroundColor:'#22c55e'},{label:'Erros',data:me,backgroundColor:'#ef4444'}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true}}}});
         }
-
-        console.log("🚀 Sistema Pronto e Operando de Forma Segura!");
     </script>
 </body>
 </html>

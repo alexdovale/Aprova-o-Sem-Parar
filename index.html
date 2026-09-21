@@ -86,9 +86,18 @@
             </div>
         </header>
         <main class="max-w-5xl mx-auto w-full px-4 py-8 flex-grow">
-            <div class="flex justify-between items-center mb-8">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
                 <h2 class="text-3xl font-bold text-slate-800">Meus Cadernos</h2>
-                <button onclick="openNewCadernoModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"><i class="ph ph-plus"></i> Novo Caderno</button>
+                <div class="flex flex-wrap gap-2 w-full sm:w-auto sm:justify-end">
+                    <!-- Botão Mágico: Material CFO -->
+                    <button onclick="window.carregarMaterialCFO()" class="flex-1 sm:flex-none bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
+                        <i class="ph-bold ph-magic-wand"></i> Material CFO (Demo)
+                    </button>
+                    <!-- Botão Novo Caderno -->
+                    <button onclick="openNewCadernoModal()" class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap">
+                        <i class="ph ph-plus"></i> Novo Caderno
+                    </button>
+                </div>
             </div>
             <div id="cadernos-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
         </main>
@@ -355,7 +364,7 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
         </main>
     </div>
 
-    <!-- MODAL -->
+    <!-- MODAL DE CONFIRMAÇÃO -->
     <div id="custom-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 transform scale-95 transition-transform duration-200" id="modal-content-box">
             <div id="modal-icon" class="text-center mb-4"></div>
@@ -395,7 +404,6 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
         window.pendingAIQuestions = [];
         const labels = ['A', 'B', 'C', 'D', 'E'];
 
-        // PDF.js worker
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
         }
@@ -426,7 +434,6 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
             setTimeout(() => document.getElementById('custom-modal').classList.add('hidden'), 200);
         };
 
-        // ── AUTH ─────────────────────────────────────────────────
         onAuthStateChanged(auth, async (user) => {
             document.getElementById('loading-screen').classList.add('hidden');
             if (user) {
@@ -499,7 +506,6 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
         };
         window.logoutUser = async () => await signOut(auth);
 
-        // ── CADERNOS ─────────────────────────────────────────────
         function loadCadernos() {
             if (!currentUser) return;
             const ref = collection(db,'artifacts',appId,'users',currentUser.uid,'cadernos');
@@ -536,6 +542,59 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
             document.getElementById('app-caderno-title').innerText=nome;
             loadQuestionsForCaderno(); window.switchTab('list');
         };
+
+        window.carregarMaterialCFO = () => {
+            window.openModal(
+                "Carregar Material CFO?",
+                "Isso criará 5 cadernos separados (Física, Química, Matemática, Biologia e Geografia) e importará as 5 questões inéditas do CBMERJ automaticamente, separando-as por matéria. Deseja continuar?",
+                "Sim, Criar Matérias",
+                "bg-amber-500 hover:bg-amber-600",
+                async () => {
+                    const btnModal = document.getElementById('modal-confirm-btn');
+                    if(btnModal) { btnModal.disabled = true; btnModal.innerText = "Carregando..."; }
+                    
+                    const questoes = [
+                      { "banca": "Inédita (Estilo FGV)", "ano": "2026", "tipo": "Múltipla Escolha", "materia": "Física", "assunto": "Hidrostática", "enunciado": "Um mergulhador de resgate do CBMERJ precisa realizar buscas submersas em uma represa a uma profundidade exata de 30 metros. Considerando que a densidade da água é de 10³ kg/m³, a aceleração da gravidade é 10 m/s² e a pressão atmosférica local é de 1 atm (10⁵ Pa), qual é a pressão total absoluta suportada pelo mergulhador nessa profundidade?", "opcoes": ["A) 1 atm", "B) 2 atm", "C) 3 atm", "D) 4 atm", "E) 5 atm"], "correta": 3, "explicacao": "Pelo Teorema de Stevin, a pressão hidrostática é Ph = d.g.h. Portanto: Ph = 10³ * 10 * 30 = 300.000 Pa, que equivale a 3 atm. A pressão total (absoluta) é a soma da pressão hidrostática com a pressão atmosférica (1 atm). Logo, Pressão Total = 3 atm + 1 atm = 4 atm." },
+                      { "banca": "Inédita (Estilo UERJ)", "ano": "2026", "tipo": "Múltipla Escolha", "materia": "Química", "assunto": "Termoquímica e Combustão", "enunciado": "Durante uma instrução de combate a incêndios, o tenente explica que o fogo é uma reação de oxidação rápida com liberação de luz e calor. Para que o incêndio ocorra em materiais comuns (Fogo Classe A), é necessário o triângulo do fogo, que consiste em:", "opcoes": ["A) Combustível, oxigênio em qualquer concentração e dióxido de carbono.", "B) Combustível, comburente (geralmente O2) e calor (energia de ativação).", "C) Material inflamável, água e energia de ativação.", "D) Comburente, pressão atmosférica elevada e reação em cadeia.", "E) Monóxido de carbono, combustível e calor."], "correta": 1, "explicacao": "O triângulo do fogo clássico é composto por três elementos essenciais: o Combustível (aquilo que queima), o Comburente (o elemento que reage com o combustível, geralmente o oxigênio atmosférico acima de 16%) e o Calor (energia de ativação necessária para iniciar a reação)." },
+                      { "banca": "Inédita (Estilo FGV)", "ano": "2026", "tipo": "Múltipla Escolha", "materia": "Matemática", "assunto": "Geometria Espacial", "enunciado": "Um Auto Bomba Tanque (ABT) do CBMERJ possui um reservatório de água no formato de um paralelepípedo reto-retângulo, com dimensões internas de 2 metros de largura, 3 metros de comprimento e 1,5 metros de altura. Sabendo que 1 metro cúbico equivale a 1.000 litros, qual é a capacidade máxima de água que este veículo pode transportar?", "opcoes": ["A) 6.000 litros", "B) 7.500 litros", "C) 8.000 litros", "D) 9.000 litros", "E) 10.500 litros"], "correta": 3, "explicacao": "O volume do paralelepípedo é calculado multiplicando suas dimensões (V = largura × comprimento × altura). Portanto, V = 2m × 3m × 1,5m = 9 m³. Como 1 m³ = 1.000 litros, o reservatório comporta 9.000 litros de água." },
+                      { "banca": "Inédita (Estilo UERJ)", "ano": "2026", "tipo": "Múltipla Escolha", "materia": "Biologia", "assunto": "Fisiologia e Primeiros Socorros", "enunciado": "A guarnição de resgate atende uma vítima que sofreu queimaduras térmicas. A avaliação primária revela que a pele da vítima apresenta vermelhidão intensa, formação de bolhas (flictenas) e dor aguda, mas não atingiu tecidos profundos como músculos ou ossos. Esse quadro clínico classifica a lesão como uma queimadura de:", "opcoes": ["A) 1º Grau", "B) 2º Grau", "C) 3º Grau", "D) 4º Grau", "E) Grau indeterminado"], "correta": 1, "explicacao": "As queimaduras de 1º grau afetam apenas a epiderme (vermelhidão e ardor). As de 2º grau afetam a epiderme e parte da derme, sendo a formação de bolhas (flictenas) e a dor intensa suas principais características. Já as de 3º grau destroem todas as camadas da pele, podendo ser indolores devido à destruição das terminações nervosas." },
+                      { "banca": "Inédita (Estilo FGV)", "ano": "2026", "tipo": "Múltipla Escolha", "materia": "Geografia", "assunto": "Dinâmica do Relevo", "enunciado": "Nos meses de verão, o Corpo de Bombeiros do Rio de Janeiro atua frequentemente em ocorrências de deslizamentos de terra, especialmente na Região Serrana. Do ponto de vista geográfico e geomorfológico, qual é o principal fator natural que, aliado à ocupação irregular das encostas, deflagra esses movimentos de massa?", "opcoes": ["A) A ocorrência de terremotos de baixa magnitude na falha tectônica fluminense.", "B) A elevada amplitude térmica diária que fratura as rochas cristalinas.", "C) O intemperismo químico profundo associado aos altos índices pluviométricos (chuvas).", "D) A intensa erosão eólica que desgasta a base dos morros desmatados.", "E) O processo de desertificação natural da Mata Atlântica no sudeste brasileiro."], "correta": 2, "explicacao": "Na região sudeste, especialmente no Rio de Janeiro, o clima tropical úmido garante chuvas intensas no verão (altos índices pluviométricos). Essa água infiltra no solo, promovendo o intemperismo químico e aumentando o peso do material nas encostas. Combinado com a gravidade e a declividade, gera os deslizamentos (movimentos de massa)." }
+                    ];
+
+                    const configMaterias = {
+                        "Física": "ph-atom",
+                        "Química": "ph-flask",
+                        "Matemática": "ph-calculator",
+                        "Biologia": "ph-dna",
+                        "Geografia": "ph-globe-hemisphere-west"
+                    };
+
+                    try {
+                        for(const mat in configMaterias) {
+                            const cadId = 'cad_cfo_' + Date.now() + Math.floor(Math.random()*1000);
+                            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', cadId), {
+                                nome: mat,
+                                icone: configMaterias[mat],
+                                createdAt: new Date().toISOString()
+                            });
+                            
+                            const q = questoes.find(x => x.materia === mat);
+                            if(q) {
+                                q.id = Date.now() + Math.floor(Math.random()*1000);
+                                q.historico = null;
+                                q.createdAt = new Date().toISOString();
+                                await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'cadernos', cadId, 'questoes', q.id.toString()), q);
+                            }
+                        }
+                        showToast("Matérias criadas e questões importadas!");
+                    } catch(e) {
+                        showToast("Erro ao importar conteúdo.", true);
+                    }
+                },
+                '<i class="ph-duotone ph-fire text-5xl text-amber-500"></i>'
+            );
+        };
+
         window.goBackToHome = () => {
             if(unsubscribeQuestions) unsubscribeQuestions();
             currentCadernoId=null; questions=[]; filteredQuestions=[];
@@ -543,7 +602,6 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
             document.getElementById('home-screen').classList.remove('hidden'); document.getElementById('home-screen').classList.add('flex');
         };
 
-        // ── QUESTÕES ─────────────────────────────────────────────
         function loadQuestionsForCaderno() {
             if(!currentUser||!currentCadernoId) return;
             const ref = collection(db,'artifacts',appId,'users',currentUser.uid,'cadernos',currentCadernoId,'questoes');
@@ -627,7 +685,6 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
             '<i class="ph-duotone ph-trash text-5xl text-red-500"></i>');
         };
 
-        // ── ADD MANUAL ───────────────────────────────────────────
         document.getElementById('add-question-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn=this.querySelector('button[type="submit"]');
@@ -639,8 +696,6 @@ Atenção: A chave "correta" deve ser um número de 0 a 4 (onde 0 é A, 1 é B, 
             finally { btn.disabled=false; btn.innerHTML='<i class="ph ph-cloud-arrow-up text-xl"></i> Salvar na Nuvem'; }
         });
 
-        // ── PDF UPLOAD ───────────────────────────────────────────
-        // Drag & drop
         document.addEventListener('DOMContentLoaded', () => {
             const dz = document.getElementById('pdf-dropzone');
             if(!dz) return;
@@ -734,7 +789,6 @@ ${fullText.substring(0,25000)}`;
             document.getElementById('pdf-status-text').textContent=msg;
         }
 
-        // ── IMPORTAÇÃO JSON MANUAL ───────────────────────────────
         window.copiarPromptHelper = () => {
             navigator.clipboard.writeText(document.getElementById('ai-prompt-helper').innerText).then(()=>showToast("Prompt copiado!"));
         };
@@ -804,7 +858,6 @@ ${fullText.substring(0,25000)}`;
             finally { btn.disabled=false; btn.innerHTML='<i class="ph-bold ph-cloud-arrow-up"></i> Salvar no Acervo'; }
         };
 
-        // ── SIMULADO ─────────────────────────────────────────────
         let quizQuestions=[], currentQuizIndex=0, userAnswers=[];
         window.startQuiz = () => {
             if(filteredQuestions.length===0) return showToast("Filtre questões antes!", true);
@@ -854,7 +907,6 @@ ${fullText.substring(0,25000)}`;
             showToast("Simulado finalizado!");
         };
 
-        // ── ESTATÍSTICAS ─────────────────────────────────────────
         function updateStats(){
             if(!document.getElementById('tab-stats').classList.contains('active'))return;
             let acertos=0,erros=0,materias={};
